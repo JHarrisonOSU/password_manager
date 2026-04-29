@@ -285,3 +285,53 @@ button {
     width: min(100%, 280px);
   }
 }
+
+/* NavBar */
+.navbar {
+  height: 60vh;
+  width: 15vw;
+  background: #1A2535;
+  border-radius: 25px;
+  padding: 15px;
+  display:grid;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
+  margin-left: 0.4rem;
+}
+.navbar-button {
+  min-width: 0; 
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  font-size: 1.3rem;
+  color: #A7A7A7;
+  
+}
+
+.navbar-button:hover {
+  color: #ffffff;
+}
+
+.navbar-button.active{
+  background: #5673c9;
+  color: white;
+}
+
+#logout-button {
+  background-color: #E74C3C;
+  color: black;
+  grid-row-start: 6;
+  grid-row-end: 7;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    width: 10rem;
+    min-height: auto;
+    display:grid;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
+  }
+}
