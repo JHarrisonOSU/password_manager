@@ -9,7 +9,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [passwordVerify, setPasswordVerify] = useState("")
   const [hashedPassword, setHashedPassword] = useState("")
-
+  const navigate = useNavigate()
   async function handleRegistrationSubmit(e) {
     e.preventDefault()
     
@@ -34,7 +34,7 @@ export default function RegisterPage() {
       })
       // const data = await response.json()
       // console.log(response)
-      navigation('/guide')
+      navigate('/guide')
     } catch (err) {
         console.error(err.message)
   }
@@ -46,7 +46,7 @@ export default function RegisterPage() {
         <div className="auth-page__card">
           <h1 className="auth-page__title">Create An Account:</h1>
 
-          <form className="auth-page__form">
+          <form className="auth-page__form" onSubmit={handleRegistrationSubmit}>
             <label className="auth-page__field">
               <span>Email:</span>
               <input 
@@ -77,8 +77,7 @@ export default function RegisterPage() {
               />
             </label>
 
-            <button className="auth-page__button" type="submit" 
-                onClick={handleRegistrationSubmit}>
+            <button className="auth-page__button" type="submit" >
               Register
             </button>
           </form>
