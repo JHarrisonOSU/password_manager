@@ -1,0 +1,71 @@
+/* Navbar styles.
+  Used inside AppShell for authenticated routes. Mobile switches from a tall
+  sidebar to a compact two-column nav so content stays reachable. */
+
+.navbar {
+  min-height: 600px;
+  width: 100%;
+  background: var(--color-dark);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  display: grid;
+  grid-template-rows: auto auto auto auto 1fr auto;
+  margin-left: 0;
+}
+
+.navbar__button {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  font-size: 1.3rem;
+  color: #a7a7a7;
+}
+
+.navbar__button:hover {
+  color: var(--color-white);
+}
+
+.navbar__button.active {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+#logout-button {
+  background-color: var(--color-danger);
+  color: black;
+  grid-row: 6;
+  border: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    width: 100%;
+    min-height: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .navbar__button {
+    min-height: 52px;
+    margin-bottom: 0;
+    padding: 0.6rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  #logout-button {
+    grid-row: auto;
+    grid-column: 1 / -1;
+    min-height: 48px;
+  }
+}

@@ -1,4 +1,4 @@
-//Main entry point for HTML mounting
+// Main entry point for HTML mounting
 
 import React from "react"
 import ReactDOM from "react-dom/client"

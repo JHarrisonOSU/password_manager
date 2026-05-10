@@ -1,0 +1,12 @@
+/* Guide page styles.
+  Keep documentation-page placeholder or future docs-specific layout here. */
+
+.guide-page {
+  width: 100%;
+}
+
+.guide-page h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 400;
+}

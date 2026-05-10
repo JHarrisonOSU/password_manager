@@ -1,0 +1,60 @@
+/* Public layout styles.
+  Used by landing, login, and register pages before the user is in the app. */
+
+.public-layout {
+  min-height: 100vh;
+}
+
+.public-layout__logo {
+  width: min(100% - 2rem, var(--page-max-width));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  padding-top: 0.25rem;
+  margin-bottom: 0.1rem;
+}
+
+.public-layout__logo--left {
+  justify-content: flex-start;
+  transform: translateX(-5%);
+}
+
+.public-layout__logo--center {
+  justify-content: center;
+  width: min(100% - 0.5rem, var(--page-max-width));
+}
+
+.public-layout__logo-link {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.public-layout__logo-link--left .logo {
+  width: clamp(180px, 18vw, 400px);
+}
+
+.public-layout__logo-link--center .logo {
+  width: clamp(240px, 24vw, 460px);
+}
+
+.public-layout__content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .public-layout__logo {
+    width: min(100% - 1rem, var(--page-max-width));
+  }
+
+  .public-layout__logo--left,
+  .public-layout__logo--center {
+    justify-content: center;
+  }
+
+  .public-layout__logo-link--left .logo,
+  .public-layout__logo-link--center .logo {
+    width: min(70vw, 320px);
+  }
+}

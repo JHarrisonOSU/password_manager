@@ -1,0 +1,104 @@
+/* Landing page styles.
+  Intended only for selectors for the public home page */
+
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.landing-page__hero {
+  width: 100%;
+  min-height: 70vh;
+  background: linear-gradient(to bottom, #1e2838 0%, #3c5479 100%);
+  color: var(--color-white);
+  border-radius: 0;
+  padding: clamp(3rem, 8vw, 6rem) 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+}
+
+.landing-page__title {
+  margin: 0;
+  max-width: 1100px;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  font-weight: 300;
+  line-height: 1.05;
+}
+
+.landing-page__subtitle {
+  margin: 1.5rem auto 0;
+  max-width: 760px;
+  font-size: clamp(1.35rem, 3vw, 2.3rem);
+  line-height: 1.25;
+}
+
+.landing-page__actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.landing-page__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
+  min-height: 70px;
+  padding: 1rem 1.8rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  background-color: rgba(22, 31, 45, 0.45);
+  color: var(--color-white);
+  font-size: 1.8rem;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.landing-page__button--secondary {
+  min-width: 160px;
+  min-height: 54px;
+  padding: 0.9rem 1.4rem;
+  font-size: 1.05rem;
+  background-color: rgba(18, 26, 38, 0.35);
+}
+
+.landing-page__info {
+  width: 100%;
+  min-height: 34vh;
+  background-color: var(--color-page-section);
+  padding: clamp(3rem, 8vw, 6rem) 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.landing-page__info p {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+}
+
+@media (max-width: 768px) {
+  .landing-page__hero {
+    min-height: auto;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .landing-page__actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .landing-page__button {
+    width: min(100%, 280px);
+  }
+}
