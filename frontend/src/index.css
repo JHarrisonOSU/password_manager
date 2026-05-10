@@ -301,8 +301,16 @@ button {
 @media (max-width: 768px) {
   .app-shell {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 1rem;
+  }
+
+  .app-shell__sidebar {
+    gap: 0.75rem;
+  }
+
+  .app-shell__logo-link {
+    justify-content: center;
   }
 
   .app-shell__content {
@@ -310,7 +318,7 @@ button {
   }
 
   .app-shell__logo-link .logo {
-    width: min(70vw, 280px);
+    width: min(70vw, 260px);
   }
 }
 
@@ -417,27 +425,113 @@ button {
 @media (max-width: 768px) {
   .vault-page {
     width: 100%;
+    gap: 1rem;
   }
 
   .vault-page__search {
-    min-height: 60px;
-    font-size: 1.25rem;
+    min-height: 56px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
     text-align: left;
   }
 
   .credential-row {
+    min-height: auto;
     grid-template-columns: 1fr;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: 0.9rem;
   }
 
   .credential-row__title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .credential-row__button {
     width: 100%;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+}
+
+/* Add password page */
+
+.add-password-page {
+  width: min(100%, 560px);
+}
+
+.add-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.add-password-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #111;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.add-password-form__field input {
+  min-height: 64px;
+  padding: 0.75rem 1rem;
+  border: 2px solid #111;
+  border-radius: 8px;
+  background-color: white;
+  color: #111;
+  font-size: 1.35rem;
+}
+
+.add-password-form__field input::placeholder {
+  color: #777;
+  opacity: 1;
+}
+
+.add-password-form__field input:focus::placeholder {
+  color: transparent;
+}
+
+.add-password-form__error {
+  margin: 0;
+  color: #e74c3c;
+  font-size: 1rem;
+}
+
+.add-password-form__button {
+  align-self: flex-end;
+  width: min(100%, 292px);
+  min-height: 48px;
+  margin-top: 1.25rem;
+  border: 2px solid #d8e0ea;
+  border-radius: 8px;
+  background-color: #e9f1ff;
+  color: #111;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.add-password-form__button:hover {
+  background-color: #dce9fb;
+}
+
+@media (max-width: 768px) {
+  .add-password-page {
+    width: 100%;
+  }
+
+  .add-password-form__field {
     font-size: 1.25rem;
+  }
+
+  .add-password-form__field input {
+    min-height: 56px;
+    font-size: 1.1rem;
+  }
+
+  .add-password-form__button {
+    align-self: stretch;
+    font-size: 1.4rem;
   }
 }
 
@@ -492,10 +586,28 @@ button {
 
 @media (max-width: 768px) {
   .navbar {
-    width: 10rem;
+    width: 100%;
     min-height: auto;
-    display:grid;
-    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .navbar__button {
+    min-height: 52px;
+    margin-bottom: 0;
+    padding: 0.6rem 0.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  #logout-button {
+    grid-row: auto;
+    grid-column: 1 / -1;
+    min-height: 48px;
   }
 }
 
@@ -529,4 +641,3 @@ button {
     width: min(100%, 280px);
   }
 }
-

@@ -6,6 +6,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import GuidePage from "../pages/GuidePage";
 import VaultPage from "../pages/VaultPage";
+import AddPasswordPage from "../pages/AddPasswordPage";
 
 export default function Router() {
   return (
@@ -15,6 +16,7 @@ export default function Router() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/guide" element={<GuidePage />} />
       <Route path="/vault" element={<VaultPage />} />
+      <Route path="/add-password" element={<AddPasswordPage />} />
     </Routes>
   );
 }

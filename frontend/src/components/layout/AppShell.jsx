@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import Logo from "../branding/Logo";
 import NavBar from "../ui/NavBar";
 
+// Wrapper for logged-in app pages like vault, add password, and settings.
+// Provides the shared logo, navbar, and main content area.
+// Possible TODO: Add protected route logic to redirect to login if not authenticated?
 export default function AppShell({ children }) {
   return (
     <div className="app-shell">
