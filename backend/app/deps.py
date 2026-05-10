@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from supabase import Client
 
 from app.db import get_supabase
 from app.schemas.auth import UserPublic
 from app.security import decode_access_token
 
-# tokenUrl powers the "Authorize" button in Swagger UI.
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=True)
+# HTTPBearer renders a single "paste your token" field in Swagger's Authorize UI
+bearer_scheme = HTTPBearer(auto_error=True)
 
 
 def _credentials_error(detail: str = "Could not validate credentials") -> HTTPException:
@@ -24,15 +24,23 @@ def _credentials_error(detail: str = "Could not validate credentials") -> HTTPEx
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     supabase: Client = Depends(get_supabase),
 ) -> UserPublic:
+    """Resolve the bearer token to the authenticated user.
+
+    Pre-auth tokens (issued mid-MFA) are explicitly rejected so they can
+    never be used to access protected resources before MFA completes.
+    """
     try:
-        payload = decode_access_token(token)
+        payload = decode_access_token(credentials.credentials)
     except jwt.ExpiredSignatureError:
         raise _credentials_error("Token expired")
     except jwt.PyJWTError:
         raise _credentials_error()
+
+    if payload.get("scope") == "pre_auth":
+        raise _credentials_error("MFA verification required")
 
     user_id = payload.get("sub")
     if not user_id:
