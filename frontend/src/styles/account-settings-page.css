@@ -1,0 +1,33 @@
+/* Account settings page styles.
+  Minimal until the settings page gets real controls. */
+
+.account-settings-page {
+  width: min(100%, 900px);
+}
+
+.account-settings-page__header h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 500;
+}
+
+.account-settings-page__header p {
+  margin: 0.5rem 0 0;
+  color: #4d5562;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .account-settings-page {
+    width: 100%;
+  }
+
+  .account-settings-page__header h1 {
+    font-size: 2rem;
+  }
+
+  .account-settings-page__header p {
+    font-size: 1rem;
+  }
+}
