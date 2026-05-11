@@ -16,7 +16,6 @@
 
 .public-layout__logo--left {
   justify-content: flex-start;
-  transform: translateX(-5%);
 }
 
 .public-layout__logo--center {

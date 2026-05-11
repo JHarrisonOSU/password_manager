@@ -1,12 +1,84 @@
 /* Guide page styles.
-  Keep documentation-page placeholder or future docs-specific layout here. */
+   Simple FAQ-style documentation page for the authenticated app. */
 
 .guide-page {
-  width: 100%;
+  width: min(100%, 900px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.guide-page h1 {
+.guide-page__header h1 {
   margin: 0;
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 400;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 500;
+}
+
+.guide-page__header p {
+  margin: 0.5rem 0 0;
+  color: #4d5562;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.guide-page__faq {
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+}
+
+.guide-page__faq-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 320px) 1fr;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.guide-page__faq-row:last-child {
+  border-bottom: 0;
+}
+
+.guide-page__faq-row h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.guide-page__faq-row p {
+  margin: 0;
+  color: #4d5562;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+  .guide-page {
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .guide-page__header h1 {
+    font-size: 2rem;
+  }
+
+  .guide-page__header p {
+    font-size: 1rem;
+  }
+
+  .guide-page__faq-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .guide-page__faq-row h2 {
+    font-size: 1rem;
+  }
+
+  .guide-page__faq-row p {
+    font-size: 0.95rem;
+  }
 }
