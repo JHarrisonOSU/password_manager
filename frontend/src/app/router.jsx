@@ -8,6 +8,7 @@ import GuidePage from "../pages/GuidePage";
 import VaultPage from "../pages/VaultPage";
 import AddPasswordPage from "../pages/AddPasswordPage";
 import AccountSettingsPage from "../pages/AccountSettingsPage";
+import NotFoundPage from "../pages/NotFoundPage";
 
 export default function Router() {
   return (
@@ -19,6 +20,7 @@ export default function Router() {
       <Route path="/vault" element={<VaultPage />} />
       <Route path="/add-password" element={<AddPasswordPage />} />
       <Route path="/account-settings" element={<AccountSettingsPage />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
