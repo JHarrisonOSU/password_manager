@@ -1,9 +1,9 @@
-import { NavLink } from "react-router-dom"
+import { NavLink } from "react-router-dom";
 
 const NavBar = () => {
   const getClass = ({ isActive }) =>
-    isActive ? "navbar-button active" : "navbar-button"
-  
+    isActive ? "navbar__button active" : "navbar__button";
+
   return (
     <nav className="navbar">
       <NavLink to="/vault" className={getClass}>
@@ -22,11 +22,11 @@ const NavBar = () => {
         Account Settings
       </NavLink>
 
-      <button className="navbar-button" id="logout-button">
+      <button className="navbar__button" id="logout-button">
         Logout
       </button>
     </nav>
-  )
-}
+  );
+};
 
-export default NavBar
+export default NavBar;

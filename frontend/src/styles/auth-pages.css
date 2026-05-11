@@ -1,0 +1,77 @@
+/* Login/register page styles.
+  These pages share the same public auth form layout, so their common classes
+  are defined together here. */
+
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem 4rem;
+}
+
+.auth-page__card {
+  width: min(100%, 640px);
+}
+
+.auth-page__title {
+  margin: 0 0 1.5rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.auth-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: clamp(1.25rem, 2vw, 2rem);
+}
+
+.auth-page__input {
+  width: 100%;
+  min-height: 64px;
+  padding: 0.9rem 1rem;
+  border: 2px solid #1b1b1b;
+  border-radius: 0.9rem;
+  background-color: var(--color-white);
+  font-size: 1.15rem;
+}
+
+.auth-page__button {
+  align-self: flex-end;
+  min-width: 190px;
+  min-height: 58px;
+  padding: 0.9rem 1.6rem;
+  border: 2px solid #1b1b1b;
+  border-radius: 0.9rem;
+  background-color: var(--color-primary-strong);
+  color: var(--color-white);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.auth-page__footer {
+  margin-top: 2rem;
+  font-size: clamp(1.1rem, 2vw, 1.8rem);
+  line-height: 1.35;
+}
+
+.auth-page__footer a {
+  text-decoration: none;
+  color: inherit;
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .auth-page__button {
+    align-self: stretch;
+  }
+}

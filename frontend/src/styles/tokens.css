@@ -1,1 +1,22 @@
-/* Shared design tokens like colors, spacing, and radius values. */
+/* Shared design tokens.
+  For reusable colors, radii, and spacing values so page files stay consistent */
+
+:root {
+  --color-page: #eef1f7;
+  --color-page-section: #f2f4f8;
+  --color-text: #111;
+  --color-text-muted: #777;
+  --color-white: #ffffff;
+  --color-dark: #1a2535;
+  --color-primary: #5673c9;
+  --color-primary-strong: #2f6fdd;
+  --color-primary-soft: #e9f1ff;
+  --color-primary-soft-hover: #dce9fb;
+  --color-danger: #e74c3c;
+  --color-border: #d8e0ea;
+  --color-border-hover: #b8c8dd;
+
+  --radius-sm: 8px;
+  --radius-md: 20px;
+  --page-max-width: 1440px;
+}

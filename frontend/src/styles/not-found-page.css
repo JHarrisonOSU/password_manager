@@ -1,0 +1,53 @@
+/* Not found page styles.
+  Simple fallback page for unknown routes. */
+
+.not-found-page {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+
+.not-found-page__content {
+  width: min(100%, 640px);
+  text-align: center;
+}
+
+.not-found-page__eyebrow {
+  margin: 0;
+  color: var(--color-primary-strong);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.not-found-page h1 {
+  margin: 0.75rem 0 0;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 500;
+}
+
+.not-found-page p {
+  margin: 1rem auto 0;
+  max-width: 520px;
+  color: #4d5562;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.not-found-page__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+  min-height: 48px;
+  margin-top: 2rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-strong);
+  color: var(--color-white);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.not-found-page__button:hover {
+  background-color: var(--color-primary);
+}
