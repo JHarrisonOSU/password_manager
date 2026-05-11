@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.routers import auth as auth_router
+from app.routers import mfa as mfa_router
+from app.routers import vault as vault_router
 
 
 def create_app() -> FastAPI:
@@ -29,6 +31,8 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(auth_router.router)
+    app.include_router(mfa_router.router)
+    app.include_router(vault_router.router)
 
     @app.get("/health", tags=["meta"])
     def health() -> dict[str, str]:
