@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import PublicLayout from "../components/layout/PublicLayout";
 import { useState } from "react";
-import buildRegistrationPayload from "../crypto/utilities.jsx"
 import { useNavigate } from "react-router-dom";
+import { buildRegistrationPayload } from "../crypto/UserCrypto"
+import authAPI from "../services/authService";
+
 // Renders the /register page route.
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [passwordVerify, setPasswordVerify] = useState("")
-  const [hashedPassword, setHashedPassword] = useState("")
   const navigate = useNavigate()
   async function handleRegistrationSubmit(e) {
     e.preventDefault()
@@ -19,22 +20,28 @@ export default function RegisterPage() {
     }
 
     try {
-      // const serverPayload = await buildRegistrationPayload(email, password)
-      const serverPayload = {
-        email,
-        master_password: password,
-        mfa_enabled: false
-      }
-      const response = await fetch("http://127.0.0.1:8000/auth/register", {
+      const {serverPayload, vaultKey} = await buildRegistrationPayload(email, password)
+      serverPayload['mfa_enabled'] = false
+      
+      // console.log(serverPayload) Can use this to demo that user's information is being hashed and payload object
+
+      const response = await fetch(`${authAPI}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(serverPayload)
       })
-      // const data = await response.json()
-      // console.log(response)
-      navigate('/guide')
+
+      if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.detail || "Registration failed");
+      }
+
+      const data = await response.json()
+      console.log("Registered: ", data)
+      
+      navigate('/login')
     } catch (err) {
         console.error(err.message)
   }
