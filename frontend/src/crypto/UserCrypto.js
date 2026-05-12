@@ -109,7 +109,6 @@ export async function buildRegistrationPayload(email, password) {
     outputType: "binary",
   });
 
-  console.log("ENCRYPTION KEY", encryption_key)
   const vault_key = crypto.getRandomValues(new Uint8Array(32));
   const encrypted_vault_key = await encryptVaultKey(vault_key, encryption_key);
 

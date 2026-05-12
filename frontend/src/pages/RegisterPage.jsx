@@ -39,7 +39,6 @@ export default function RegisterPage() {
       }
 
       const data = await response.json()
-      console.log("Registered: ", data)
       
       navigate('/login')
     } catch (err) {

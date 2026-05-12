@@ -1,4 +1,4 @@
-import { base64ToBuf, bufToBase64 } from "./crypto";
+import { base64ToBuf, bufToBase64 } from "./UserCrypto";
 
 export async function encryptEntry(entry, vaultKey) {
 /** 

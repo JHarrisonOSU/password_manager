@@ -11,12 +11,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const navigate = useNavigate()
-
+  const [showErrorMsg, setShowErrorMsg] = useState(false)
   async function handleLoginSubmit(e) {
     e.preventDefault()
     try {
       // 1. Fetch salts
-      const saltsResponse = await fetch(`${authAPI}salt?email=${email}`);
+      const saltsResponse = await fetch(`${authAPI}/salt?email=${encodeURIComponent(email)}`);
+      
       const data =  await saltsResponse.json()
       const salt_auth = new Uint8Array(data.salt_auth)
       const salt_enc = new Uint8Array(data.salt_enc)
@@ -43,6 +44,10 @@ export default function LoginPage() {
       })
       const loginData = await loginResponse.json()
 
+      if (!loginResponse.ok) {
+        throw new Error("Invalid Credentials")
+      }
+
       // 4. Decrypt the vault key locally - encryption key never left the browser
       const { iv, ciphertext } = loginData.encrypted_vault_key
       const cryptoKey = await crypto.subtle.importKey(
@@ -61,6 +66,7 @@ export default function LoginPage() {
         
       navigate("/vault")
     } catch (err) {
+      setShowErrorMsg(true)
       console.error(err.message)
     }
   }
@@ -99,7 +105,7 @@ export default function LoginPage() {
               Sign In
             </button>
           </form>
-
+          {showErrorMsg && <p className="">Invalid email or password</p>}
           <p className="auth-page__footer">
             Don’t have an account?{" "}
             <Link to="/register">Click here to register.</Link>
