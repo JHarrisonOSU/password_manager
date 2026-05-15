@@ -1,10 +1,11 @@
 import { data, Link } from "react-router-dom";
 import PublicLayout from "../components/layout/PublicLayout";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { argon2id } from "hash-wasm";
 import { base64ToBuf } from "../crypto/UserCrypto";
 import authAPI from "../services/authService";
+import { VaultKeyContext } from "../lib/VaultContext";
 
 // Renders the /login page route.
 export default function LoginPage() {
@@ -12,6 +13,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const navigate = useNavigate()
   const [showErrorMsg, setShowErrorMsg] = useState(false)
+  const {setVaultKey} = useContext(VaultKeyContext)
+
   async function handleLoginSubmit(e) {
     e.preventDefault()
     try {
@@ -58,12 +61,14 @@ export default function LoginPage() {
         cryptoKey,
         base64ToBuf(ciphertext)
       );
-      // **TODO: How to manage the vaultKey without storing it in the browser? Pass it up in react context?
+
       const vaultKey = new Uint8Array(decrypted)
+      setVaultKey(vaultKey)  
 
       const token = loginData.access_token
       localStorage.setItem("token", token)
-        
+      sessionStorage.setItem("kdfParams", JSON.stringify(data.kdf))
+      sessionStorage.setItem("salt_enc", JSON.stringify(Array.from(salt_enc)));
       navigate("/vault")
     } catch (err) {
       setShowErrorMsg(true)
