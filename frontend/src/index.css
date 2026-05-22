@@ -13,3 +13,6 @@
 @import "./styles/not-found-page.css";
 @import "./styles/account-settings-page.css";
 
+body {
+    font-family: 'Montserrat';
+}

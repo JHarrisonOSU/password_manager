@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import PublicLayout from "../components/layout/PublicLayout";
+import PasswordBeforeAfter from "../components/branding/PasswordBeforeAfter";
+import Features from "../components/layout/Features";
 
 // Renders the / (landing page) route.
 export default function LandingPage() {
@@ -7,26 +9,30 @@ export default function LandingPage() {
     <PublicLayout showFooter={true} logoPosition="left">
       <div className="landing-page">
         <section className="landing-page__hero">
-          <h1 className="landing-page__title">Secure Password Vault System</h1>
+          <h1 className="landing-page__title">Where your <span style={{color:"white", fontWeight:"500"}}>data</span> meets <span style={{color:"#2ECC71", fontWeight:"500"}}>security</span></h1>
           <p className="landing-page__subtitle">
-            Manage your passwords from one secure storage vault.
+            Protect your passwords in a secure vault locked by a master password that never leaves your browser.
           </p>
-
+          <PasswordBeforeAfter/>
           <div className="landing-page__actions">
-            <Link className="landing-page__button" to="/login">
-              Login
+            <Link className="landing-page__button" to="/register">
+              Get Started
             </Link>
             <button
-              className="landing-page__button landing-page__button--secondary"
+              className="landing-page__button "
               type="button"
+              onClick={() => document.getElementsByClassName('landing-page__info')[0]?.scrollIntoView({behavior: 'smooth'})}
             >
-              How It Works
+              Learn More
             </button>
           </div>
         </section>
 
         <section className="landing-page__info">
-          <p>Text about technologies used</p>
+          <h1 style={{marginBottom:"0px"}}>Features</h1>
+          <p>Built Around Keeping Your Data Safe</p>
+            <Features/>
+
         </section>
       </div>
     </PublicLayout>

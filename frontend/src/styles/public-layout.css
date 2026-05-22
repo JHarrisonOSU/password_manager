@@ -6,10 +6,10 @@
 }
 
 .public-layout__logo {
-  width: min(100% - 2rem, var(--page-max-width));
+  /* width: min(100% - 2rem, var(--page-max-width)); */
   margin: 0 auto;
   display: flex;
-  align-items: center;
+  justify-content: left;
   padding-top: 0.25rem;
   margin-bottom: 0.1rem;
 }

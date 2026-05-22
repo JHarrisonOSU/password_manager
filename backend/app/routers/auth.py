@@ -28,7 +28,7 @@ from app.security import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 _USER_COLUMNS = (
-    "id, email, master_password_hash, mfa_enabled, "
+    "id, email, auth_key_hash, mfa_enabled, "
     "salt_auth, salt_enc, kdf, encrypted_vault_key"
 )
 
@@ -103,7 +103,7 @@ def register(
         .insert(
             {
                 "email": email,
-                "master_password_hash": auth_hash,
+                "auth_key_hash": auth_hash,
                 "salt_auth": body.salt_auth,
                 "salt_enc": body.salt_enc,
                 "kdf": body.kdf.model_dump(),
@@ -146,7 +146,7 @@ def login(
     except ValueError:
         raise invalid
 
-    if not verify_auth_key(auth_key_bytes, user["master_password_hash"]):
+    if not verify_auth_key(auth_key_bytes, user["auth_key_hash"]):
         raise invalid
 
     if user.get("mfa_enabled"):
