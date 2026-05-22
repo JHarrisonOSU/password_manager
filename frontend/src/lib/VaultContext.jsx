@@ -1,7 +1,6 @@
 // Context.js
-import { useState, createContext } from "react";
-
-export const VaultKeyContext = createContext(null);
+import { useState } from "react";
+import { VaultKeyContext } from "./VaultKeyContext";
 
 export const VaultContextProvider = ({ children }) => {
     const [vaultKey, setVaultKey] = useState(null)
@@ -13,4 +12,3 @@ export const VaultContextProvider = ({ children }) => {
         </VaultKeyContext.Provider>
     )
 }
-

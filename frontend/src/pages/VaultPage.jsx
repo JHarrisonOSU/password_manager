@@ -1,6 +1,5 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import AppShell from "../components/layout/AppShell";
-import { VaultKeyContext } from "../lib/VaultContext";
 // TODO: Fetch this credential list from the backend once the vault API is ready.
 const credentials = [
   { id: 1, website: "Google" },
@@ -12,7 +11,6 @@ const credentials = [
 
 export default function VaultPage() {
   const [showAllCredentials, setShowAllCredentials] = useState(false);
-  const {vaultKey} = useContext(VaultKeyContext)
 
   const visibleCredentials = showAllCredentials
     ? credentials
