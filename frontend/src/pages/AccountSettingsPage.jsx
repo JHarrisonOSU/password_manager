@@ -1,6 +1,10 @@
 import AppShell from "../components/layout/AppShell";
 import { useState } from "react";
-import authAPI from "../services/authService"
+import {
+  getCurrentUser,
+  setupMfa,
+  verifyMfaSetup,
+} from "../services/authService";
 import {QRCodeSVG} from 'qrcode.react';
 
 export default function AccountSettingsPage() {
@@ -12,26 +16,8 @@ export default function AccountSettingsPage() {
     // the account is created and connected to the authenticator app. This is the first step to enabling MFA.
     const token = localStorage.getItem('token')
     try {
-
-      const response = await fetch(`${authAPI}/mfa/setup`, { 
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-          }
-        })
-    if (response.status == 409) {
-      console.log("MFA Already Enabled")
-      return
-    }
-    
-    if (!response.ok) {
-      console.log("Failed to setup MFA")
-      return 
-    }
-    
-    const setupData = await response.json()
-    setQr(setupData["totp_uri"])
+      const setupData = await setupMfa(token)
+      setQr(setupData["totp_uri"])
     } catch (err) {
       console.error(err.message)
     }
@@ -41,16 +27,7 @@ export default function AccountSettingsPage() {
   // Verifies the setup between authenticator app and backend. Once a user scans the QR code displayed by createQRCode()
     const token = localStorage.getItem("token")
     try {
-      const MFAVerifyRes = await fetch(`${authAPI}/mfa/verify-setup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          code: mfaCode
-        })
-      })
+      await verifyMfaSetup(token, mfaCode)
     } catch (err) {
       console.error(err.message)
     }
@@ -59,15 +36,7 @@ export default function AccountSettingsPage() {
   async function checkMFAEnbaled() {
   // Used during debugging to check user's jwt info
     const token = localStorage.getItem("token")
-
-    const response = await fetch(`${authAPI}/me`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    const data = await response.json()
-    // console.log(data)
+    await getCurrentUser(token)
   }
 
 
