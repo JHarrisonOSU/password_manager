@@ -75,3 +75,43 @@
     align-self: stretch;
   }
 }
+
+/* Dark backdrop covering entire screen */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal box */
+.totp-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Input styling */
+.totp-field {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.25rem;
+  text-align: center;
+  letter-spacing: 0.3rem;
+
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
