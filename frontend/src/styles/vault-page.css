@@ -30,6 +30,16 @@
   color: transparent;
 }
 
+.vault-page__locked {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-soft);
+  color: var(--color-dark);
+  font-weight: 600;
+}
+
 .vault-page__list {
   display: flex;
   flex-direction: column;

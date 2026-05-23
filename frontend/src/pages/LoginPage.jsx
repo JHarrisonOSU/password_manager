@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import PublicLayout from "../components/layout/PublicLayout";
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { argon2id } from "hash-wasm";
 import { base64ToBuf } from "../crypto/UserCrypto";
 import { getSalt, loginUser, verifyMfaLogin } from "../services/authService";
-import { VaultKeyContext } from "../lib/VaultKeyContext";
+import { useAuth } from "../lib/useAuth";
 import TotpInput from "../components/forms/TOTPInput";
 
 // Renders the /login page route.
@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [showTotp, setShowTotp] = useState(false);
   const [resolver, setResolver] = useState(null);
 
-  const { setVaultKey } = useContext(VaultKeyContext);
+  const { login } = useAuth();
 
   async function handleLoginSubmit(e) {
     e.preventDefault();
@@ -52,12 +52,13 @@ export default function LoginPage() {
       }
 
       const vaultKey = await decryptVaultKey(encryption_key, authData);
-      setVaultKey(vaultKey);
+      login({
+        token: authData.access_token,
+        vaultKey,
+        kdfParams,
+        saltEnc: salt_enc,
+      });
 
-      const token = authData.access_token;
-      localStorage.setItem("token", token);
-      sessionStorage.setItem("kdfParams", JSON.stringify(kdfParams));
-      sessionStorage.setItem("salt_enc", JSON.stringify(Array.from(salt_enc)));
       navigate("/vault");
     } catch (err) {
       setShowErrorMsg(true);
