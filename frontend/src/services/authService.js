@@ -62,6 +62,7 @@ export function verifyMfaSetup(token, code) {
   return request("/auth/mfa/verify-setup", {
     method: "POST",
     headers: {
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ code }),
