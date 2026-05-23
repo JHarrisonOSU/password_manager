@@ -1,5 +1,7 @@
 import { useState } from "react";
 import AppShell from "../components/layout/AppShell";
+import UnlockVaultModal from "../components/forms/UnlockVaultModal";
+import { useAuth } from "../lib/useAuth";
 
 const initialFormData = {
   accountLogin: "",
@@ -11,6 +13,8 @@ const initialFormData = {
 export default function AddPasswordPage() {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
+  const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
+  const { isVaultUnlocked, unlockVault } = useAuth();
 
   function handleInputChange(event) {
     const { name, value } = event.target;
@@ -28,8 +32,18 @@ export default function AddPasswordPage() {
     // Example checks: required fields, valid website format, password match.
     setErrors({});
 
+    if (!isVaultUnlocked) {
+      setShowUnlockPrompt(true);
+      return;
+    }
+
     // TODO: Send the validated password data to the backend.
     console.log("Add password form submitted:", formData);
+  }
+
+  async function handleUnlock(masterPassword) {
+    await unlockVault(masterPassword);
+    setShowUnlockPrompt(false);
   }
 
   return (
@@ -89,6 +103,12 @@ export default function AddPasswordPage() {
           </button>
         </form>
       </section>
+      {showUnlockPrompt ? (
+        <UnlockVaultModal
+          onUnlock={handleUnlock}
+          onCancel={() => setShowUnlockPrompt(false)}
+        />
+      ) : null}
     </AppShell>
   );
 }
