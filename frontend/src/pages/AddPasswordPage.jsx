@@ -11,6 +11,7 @@ const initialFormData = {
   website: "",
   password: "",
   verifyPassword: "",
+  notes: "",
 };
 
 export default function AddPasswordPage() {
@@ -62,11 +63,13 @@ export default function AddPasswordPage() {
 
     try {
       // Encrypt the full password entry in the browser before sending it.
+      // Notes stay inside this encrypted blob instead of becoming a DB column.
       const encryptedEntry = await encryptEntry(
         {
           accountLogin: formData.accountLogin.trim(),
           website: formData.website.trim(),
           password: formData.password,
+          notes: formData.notes.trim(),
         },
         currentVaultKey,
       );
@@ -133,6 +136,16 @@ export default function AddPasswordPage() {
               value={formData.verifyPassword}
               onChange={handleInputChange}
               placeholder="**************"
+            />
+          </label>
+
+          <label className="add-password-form__field">
+            <span>Notes:</span>
+            <textarea
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              placeholder="Optional notes"
             />
           </label>
 

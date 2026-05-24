@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import AppShell from "../components/layout/AppShell";
+import CredentialDetailsModal from "../components/forms/CredentialDetailsModal";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
+import { decryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
-import { getVaultItems } from "../services/authService";
+import { deleteVaultItem, getVaultItems } from "../services/authService";
 
 export default function VaultPage() {
   // Track creds, whether the GET /vault request is still running, and any error.
@@ -11,8 +13,13 @@ export default function VaultPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showAllCredentials, setShowAllCredentials] = useState(false);
   const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
+  const [pendingCredential, setPendingCredential] = useState(null);
+  const [selectedCredential, setSelectedCredential] = useState(null);
+  const [selectedCredentialDetails, setSelectedCredentialDetails] =
+    useState(null);
+  const [credentialError, setCredentialError] = useState("");
   // token is needed for the Authorization header; unlockVault restores the vault key after refresh.
-  const { token, isVaultUnlocked, unlockVault } = useAuth();
+  const { token, vaultKey, isVaultUnlocked, unlockVault } = useAuth();
 
   const visibleCredentials = showAllCredentials
     ? credentials
@@ -43,18 +50,63 @@ export default function VaultPage() {
     }
   }, [token]);
 
-  function handleSelectCredential() {
+  async function handleSelectCredential(credential) {
+    setCredentialError("");
+
     if (!isVaultUnlocked) {
+      // Remember the row so we can open it right after the vault is unlocked.
+      setPendingCredential(credential);
       setShowUnlockPrompt(true);
       return;
     }
 
-    // TODO: Open the credential details/edit modal for this credential.
+    await openCredentialDetails(credential, vaultKey);
   }
 
   async function handleUnlock(masterPassword) {
-    await unlockVault(masterPassword);
+    const unlockedVaultKey = await unlockVault(masterPassword);
     setShowUnlockPrompt(false);
+
+    if (pendingCredential) {
+      await openCredentialDetails(pendingCredential, unlockedVaultKey);
+      setPendingCredential(null);
+    }
+  }
+
+  async function handleDeleteCredential(credentialId) {
+    try {
+      await deleteVaultItem(token, credentialId);
+
+      // Remove it from the current list without needing a full refetch.
+      setCredentials((currentCredentials) =>
+        currentCredentials.filter(
+          (credential) => credential.id !== credentialId,
+        ),
+      );
+
+      setSelectedCredential(null);
+      setSelectedCredentialDetails(null);
+    } catch (err) {
+      setCredentialError(err.message || "Failed to delete credential");
+    }
+  }
+
+  async function openCredentialDetails(credential, currentVaultKey) {
+    try {
+      // Decrypt only the selected row when the user asks to view it.
+      const decryptedEntry = await decryptEntry(
+        {
+          iv: credential.iv,
+          ciphertext: credential.encrypted_blob,
+        },
+        currentVaultKey,
+      );
+
+      setSelectedCredential(credential);
+      setSelectedCredentialDetails(decryptedEntry);
+    } catch (err) {
+      setCredentialError(err.message || "Failed to decrypt credential");
+    }
   }
 
   return (
@@ -79,6 +131,7 @@ export default function VaultPage() {
 
         {/* Shows backend or network errors from loading the vault. */}
         {errorMessage ? <p>{errorMessage}</p> : null}
+        {credentialError ? <p>{credentialError}</p> : null}
 
         {/* Shows when the backend works but the user has no saved passwords yet. */}
         {!isLoading && !errorMessage && credentials.length === 0 ? (
@@ -97,7 +150,7 @@ export default function VaultPage() {
                 <button
                   className="credential-row__button"
                   type="button"
-                  onClick={handleSelectCredential}
+                  onClick={() => handleSelectCredential(credential)}
                 >
                   Select
                 </button>
@@ -119,6 +172,17 @@ export default function VaultPage() {
         <UnlockVaultModal
           onUnlock={handleUnlock}
           onCancel={() => setShowUnlockPrompt(false)}
+        />
+      ) : null}
+      {selectedCredential && selectedCredentialDetails ? (
+        <CredentialDetailsModal
+          credential={selectedCredential}
+          decryptedEntry={selectedCredentialDetails}
+          onDelete={handleDeleteCredential}
+          onClose={() => {
+            setSelectedCredential(null);
+            setSelectedCredentialDetails(null);
+          }}
         />
       ) : null}
     </AppShell>
