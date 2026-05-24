@@ -18,7 +18,6 @@ export default function Router() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      {/* Guide uses AppShell, so it is protected with the rest of the app UI. */}
       <Route
         path="/guide"
         element={

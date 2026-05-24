@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
+import { encryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
+import { createVaultItem } from "../services/authService";
 
 const initialFormData = {
   accountLogin: "",
@@ -11,10 +14,12 @@ const initialFormData = {
 };
 
 export default function AddPasswordPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
   const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
-  const { isVaultUnlocked, unlockVault } = useAuth();
+  const { token, vaultKey, isVaultUnlocked, unlockVault } = useAuth();
 
   function handleInputChange(event) {
     const { name, value } = event.target;
@@ -25,25 +30,62 @@ export default function AddPasswordPage() {
     }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    // TODO: Add frontend validation here before sending to backend.
-    // Example checks: required fields, valid website format, password match.
+    // Validate before we try to encrypt or send anything to the backend.
     setErrors({});
+    const validationErrors = validateForm(formData);
+
+    if (validationErrors.form) {
+      setErrors(validationErrors);
+      return;
+    }
 
     if (!isVaultUnlocked) {
       setShowUnlockPrompt(true);
       return;
     }
 
-    // TODO: Send the validated password data to the backend.
-    console.log("Add password form submitted:", formData);
+    await saveVaultItem(vaultKey);
   }
 
   async function handleUnlock(masterPassword) {
-    await unlockVault(masterPassword);
+    // Restore the memory-only vault key, then continue the save the user started.
+    const unlockedVaultKey = await unlockVault(masterPassword);
     setShowUnlockPrompt(false);
+    await saveVaultItem(unlockedVaultKey);
+  }
+
+  async function saveVaultItem(currentVaultKey) {
+    setIsSaving(true);
+
+    try {
+      // Encrypt the full password entry in the browser before sending it.
+      const encryptedEntry = await encryptEntry(
+        {
+          accountLogin: formData.accountLogin.trim(),
+          website: formData.website.trim(),
+          password: formData.password,
+        },
+        currentVaultKey,
+      );
+
+      // Backend stores searchable metadata plus the encrypted password blob.
+      await createVaultItem(token, {
+        website_name: formData.website.trim(),
+        website_url: formData.website.trim(),
+        username: formData.accountLogin.trim(),
+        encrypted_blob: encryptedEntry.ciphertext,
+        iv: encryptedEntry.iv,
+      });
+
+      navigate("/vault");
+    } catch (err) {
+      setErrors({ form: err.message || "Failed to save password" });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -98,8 +140,12 @@ export default function AddPasswordPage() {
             <p className="add-password-form__error">{errors.form}</p>
           ) : null}
 
-          <button className="add-password-form__button" type="submit">
-            Save
+          <button
+            className="add-password-form__button"
+            type="submit"
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save"}
           </button>
         </form>
       </section>
@@ -111,4 +157,19 @@ export default function AddPasswordPage() {
       ) : null}
     </AppShell>
   );
+}
+
+function validateForm(formData) {
+  const accountLogin = formData.accountLogin.trim();
+  const website = formData.website.trim();
+
+  if (!accountLogin || !website || !formData.password || !formData.verifyPassword) {
+    return { form: "Please fill out every field." };
+  }
+
+  if (formData.password !== formData.verifyPassword) {
+    return { form: "Passwords do not match." };
+  }
+
+  return {};
 }
