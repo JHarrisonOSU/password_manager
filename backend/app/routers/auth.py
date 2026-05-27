@@ -135,7 +135,7 @@ def login(
     # emails are registered.
     invalid = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid email or password",
+        detail="Invalid email or password.",
         headers={"WWW-Authenticate": "Bearer"},
     )
     if user is None:

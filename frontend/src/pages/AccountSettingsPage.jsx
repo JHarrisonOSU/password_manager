@@ -10,7 +10,7 @@ import {QRCodeSVG} from 'qrcode.react';
 export default function AccountSettingsPage() {
   const [qr, setQr] = useState(null)
   const [mfaCode, setMfaCode] = useState("")
-
+  const [error, setError] = useState("")
   async function createQRCode(){
     // Displays the QR code for user's to scan with authenticator application. Once a user scans the code,
     // the account is created and connected to the authenticator app. This is the first step to enabling MFA.
@@ -19,7 +19,7 @@ export default function AccountSettingsPage() {
       const setupData = await setupMfa(token)
       setQr(setupData["totp_uri"])
     } catch (err) {
-      console.error(err.message)
+      setError(err.message)
     }
   }
 
@@ -29,7 +29,7 @@ export default function AccountSettingsPage() {
     try {
       await verifyMfaSetup(token, mfaCode)
     } catch (err) {
-      console.error(err.message)
+      setError(err.message)
     }
   }
 
@@ -56,6 +56,7 @@ export default function AccountSettingsPage() {
             <input type="text"
               onChange={(e)=>setMfaCode(e.target.value)}>
             </input>
+            {error ? (<p className="account-settings-form__error">{error}</p>) : null}
             <button onClick={()=>verifyQRCode()}>Verify MFA Setup</button>
           </div>
         </header>

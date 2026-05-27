@@ -11,11 +11,14 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [passwordVerify, setPasswordVerify] = useState("")
   const navigate = useNavigate()
+  const [error, setError] = useState(null);
+  
+
   async function handleRegistrationSubmit(e) {
     e.preventDefault()
     
     if (password !== passwordVerify) {
-      console.log("Passwords do not match")
+      setError("Passwords do not match")
       return
     }
 
@@ -28,7 +31,7 @@ export default function RegisterPage() {
       await registerUser(serverPayload)
       navigate('/login')
     } catch (err) {
-        console.error(err.message)
+      setError(err.message)
   }
 
   } 
@@ -73,7 +76,7 @@ export default function RegisterPage() {
               Register
             </button>
           </form>
-
+          {error ? (<p className="add-password-form__error">{error}</p>) : null}
           <p className="auth-page__footer">
             Already have an account?{" "}
             <Link to="/login">Click here to log in.</Link>
