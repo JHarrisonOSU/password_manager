@@ -28,6 +28,19 @@
   background-color: var(--color-white);
 }
 
+.guide-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-page__section > h2 {
+  margin: 0;
+  color: var(--color-dark);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
 .guide-page__faq-row {
   display: grid;
   grid-template-columns: minmax(180px, 320px) 1fr;
@@ -40,7 +53,7 @@
   border-bottom: 0;
 }
 
-.guide-page__faq-row h2 {
+.guide-page__faq-row h3 {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
@@ -74,7 +87,11 @@
     padding: 1rem;
   }
 
-  .guide-page__faq-row h2 {
+  .guide-page__section > h2 {
+    font-size: 1.2rem;
+  }
+
+  .guide-page__faq-row h3 {
     font-size: 1rem;
   }
 
