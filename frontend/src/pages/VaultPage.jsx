@@ -294,12 +294,8 @@ export default function VaultPage() {
 }
 
 function credentialMatchesSearch(credential, normalizedSearchQuery) {
-  // Only search backend metadata so we do not need to decrypt every password row.
-  const searchableText = [
-    credential.website_name,
-    credential.website_url,
-    credential.username,
-  ]
+  // Search only website fields so usernames do not unexpectedly match.
+  const searchableText = [credential.website_name, credential.website_url]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();

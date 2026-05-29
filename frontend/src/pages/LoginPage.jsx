@@ -125,7 +125,7 @@ export default function LoginPage() {
   };
 
   return (
-    <PublicLayout logoPosition="center">
+    <PublicLayout logoPosition="center" showFooter={true}>
       <section className="auth-page">
         <div className="auth-page__card">
           <h1 className="auth-page__title">Sign in to Password Protector</h1>

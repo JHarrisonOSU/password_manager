@@ -1,16 +1,75 @@
 /* Footer styles.
-  Used by the public layout when/if a page opts into showing the footer. */
+  Used by public pages that opt into the shared footer. */
 
 .site-footer {
   width: 100%;
   background-color: var(--color-dark);
   color: var(--color-white);
-  text-align: center;
-  padding: 1.75rem 1rem;
+  padding: 2rem 1rem;
 }
 
-.site-footer p {
+.site-footer__inner {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr auto 1fr;
+  align-items: center;
+  gap: 2rem;
+}
+
+.site-footer__brand,
+.site-footer__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.site-footer__name,
+.site-footer__tagline,
+.site-footer__meta p {
   margin: 0;
-  font-size: clamp(1.5rem, 3vw, 2.75rem);
-  font-weight: 300;
+}
+
+.site-footer__name {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.site-footer__tagline,
+.site-footer__meta {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.95rem;
+}
+
+.site-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.site-footer__nav a {
+  color: var(--color-white);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-footer__nav a:hover {
+  text-decoration: underline;
+}
+
+.site-footer__meta {
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .site-footer__inner {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  .site-footer__meta {
+    text-align: center;
+  }
 }
