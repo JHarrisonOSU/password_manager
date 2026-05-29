@@ -1,14 +1,17 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
 import { encryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
+import { normalizeWebsiteUrl } from "../lib/websiteUtils";
 import { createVaultItem } from "../services/authService";
 
 const initialFormData = {
   accountLogin: "",
-  website: "",
+  websiteName: "",
+  websiteUrl: "",
   password: "",
   verifyPassword: "",
   notes: "",
@@ -19,6 +22,8 @@ export default function AddPasswordPage() {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  // One toggle controls both password fields so the user can compare them.
+  const [showPassword, setShowPassword] = useState(false);
   const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
   const { token, vaultKey, isVaultUnlocked, unlockVault } = useAuth();
   
@@ -62,12 +67,16 @@ export default function AddPasswordPage() {
     setIsSaving(true);
 
     try {
-      // Encrypt the full password entry in the browser before sending it.
-      // Notes stay inside this encrypted blob instead of becoming a DB column.
+      const normalizedWebsiteUrl = normalizeWebsiteUrl(formData.websiteUrl);
+
+      if (!normalizedWebsiteUrl) {
+        throw new Error("Enter a valid website, like discord.com.");
+      }
+
+      // Encrypt the sensitive entry details in the browser before sending them.
+      // Website/login metadata stays in backend columns for searching and display.
       const encryptedEntry = await encryptEntry(
         {
-          accountLogin: formData.accountLogin.trim(),
-          website: formData.website.trim(),
           password: formData.password,
           notes: formData.notes.trim(),
         },
@@ -76,8 +85,8 @@ export default function AddPasswordPage() {
 
       // Backend stores searchable metadata plus the encrypted password blob.
       await createVaultItem(token, {
-        website_name: formData.website.trim(),
-        website_url: formData.website.trim(),
+        website_name: formData.websiteName.trim(),
+        website_url: normalizedWebsiteUrl,
         username: formData.accountLogin.trim(),
         encrypted_blob: encryptedEntry.ciphertext,
         iv: encryptedEntry.iv,
@@ -92,7 +101,7 @@ export default function AddPasswordPage() {
   }
 
   function generatePassword(length=32) {
-    // Generates a 32-length password bassed off user input. Mixes user input into length - password.length long randomly generated string. 
+    // Builds a 32-character suggestion by mixing user input with random characters.
     // If user has no input, generates a 32-length random password.
     let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*"
     const base = formData.password
@@ -130,31 +139,53 @@ export default function AddPasswordPage() {
           </label>
 
           <label className="add-password-form__field">
-            <span>Website:</span>
+            <span>Website Name:</span>
             <input
               type="text"
-              name="website"
-              value={formData.website}
+              name="websiteName"
+              value={formData.websiteName}
               onChange={handleInputChange}
-              placeholder="www.gmail.com"
+              placeholder="Gmail"
+            />
+          </label>
+
+          <label className="add-password-form__field">
+            <span>Website URL:</span>
+            <input
+              type="text"
+              name="websiteUrl"
+              value={formData.websiteUrl}
+              onChange={handleInputChange}
+              placeholder="gmail.com"
             />
           </label>
 
           <label className="add-password-form__field">
             <span>Password:</span>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="**************"
-            />
+            <div className="add-password-form__input-row">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="**************"
+              />
+              <button
+                className="add-password-form__icon-button"
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+              </button>
+            </div>
           </label>
 
           <label className="add-password-form__field">
             <span>Verify Password</span>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="verifyPassword"
               value={formData.verifyPassword}
               onChange={handleInputChange}
@@ -205,10 +236,22 @@ export default function AddPasswordPage() {
 
 function validateForm(formData) {
   const accountLogin = formData.accountLogin.trim();
-  const website = formData.website.trim();
+  const websiteName = formData.websiteName.trim();
+  const websiteUrl = formData.websiteUrl.trim();
+  const normalizedWebsiteUrl = normalizeWebsiteUrl(websiteUrl);
 
-  if (!accountLogin || !website || !formData.password || !formData.verifyPassword) {
+  if (
+    !accountLogin ||
+    !websiteName ||
+    !websiteUrl ||
+    !formData.password ||
+    !formData.verifyPassword
+  ) {
     return { form: "Please fill out every field." };
+  }
+
+  if (!normalizedWebsiteUrl) {
+    return { form: "Enter a valid website, like discord.com." };
   }
 
   if (formData.password !== formData.verifyPassword) {

@@ -40,6 +40,19 @@
   font-weight: 600;
 }
 
+.vault-page__status {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+  font-weight: 600;
+}
+
+.vault-page__status--success {
+  color: #146c43;
+}
+
 .vault-page__list {
   display: flex;
   flex-direction: column;
@@ -58,10 +71,22 @@
   background-color: var(--color-white);
 }
 
+.credential-row__info {
+  min-width: 0;
+}
+
 .credential-row__title {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.credential-row__meta {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .credential-row__button {
@@ -142,6 +167,11 @@
   cursor: pointer;
 }
 
+.credential-modal__close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .credential-modal__field {
   display: flex;
   flex-direction: column;
@@ -150,7 +180,8 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
-.credential-modal__field input {
+.credential-modal__field input,
+.credential-modal__field textarea {
   width: 100%;
   min-height: 64px;
   padding: 0.75rem 1rem;
@@ -161,9 +192,19 @@
   font-size: 1.5rem;
 }
 
+.credential-modal__field textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.credential-modal__field input:not([readonly]),
+.credential-modal__field textarea:not([readonly]) {
+  color: var(--color-dark);
+}
+
 .credential-modal__input-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: stretch;
   border: 2px solid #1b1b1b;
   border-radius: var(--radius-sm);
@@ -178,12 +219,23 @@
 }
 
 .credential-modal__input-row button {
-  min-width: 86px;
+  width: 52px;
+  min-width: 52px;
   border: 0;
   border-left: 2px solid #1b1b1b;
   background: var(--color-primary-soft);
   color: var(--color-dark);
   cursor: pointer;
+}
+
+.credential-modal__icon-button {
+  display: grid;
+  place-items: center;
+}
+
+.credential-modal__input-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
 .credential-modal__actions {
@@ -202,17 +254,35 @@
   font-size: 2rem;
 }
 
-.credential-modal__actions button:first-child {
+.credential-modal__edit-button,
+.credential-modal__save-button,
+.credential-modal__cancel-button {
   background: var(--color-primary-soft);
 }
 
-.credential-modal__actions button:last-child {
+.credential-modal__delete-button {
   background: #ffa5aa;
 }
 
 .credential-modal__actions button:disabled {
   cursor: not-allowed;
   opacity: 0.75;
+}
+
+.credential-modal__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #9f1d24;
+  font-weight: 600;
+  text-align: center;
+}
+
+.credential-modal__success {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #146c43;
+  font-weight: 600;
+  text-align: center;
 }
 
 .credential-modal__confirm {
@@ -243,6 +313,11 @@
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
+}
+
+.credential-modal__confirm-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
 .credential-modal__confirm-actions button:first-child {
@@ -277,6 +352,10 @@
     font-size: 1.4rem;
   }
 
+  .credential-row__meta {
+    font-size: 0.95rem;
+  }
+
   .credential-row__button {
     width: 100%;
     min-height: 44px;
@@ -293,7 +372,8 @@
     font-size: 1.2rem;
   }
 
-  .credential-modal__field input {
+  .credential-modal__field input,
+  .credential-modal__field textarea {
     min-height: 52px;
     font-size: 1rem;
   }
