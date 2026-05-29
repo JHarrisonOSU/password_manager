@@ -81,116 +81,136 @@ export default function AddPasswordPage() {
     }
   }
 
-  function generatePassword(length=32) {
+  function generatePassword(length = 32) {
     const generated = generatePasswordSuggestion(formData.password, length);
 
     setFormData((currentFormData) => ({
       ...currentFormData,
       password: generated,
-      verifyPassword: generated
+      verifyPassword: generated,
     }));
   }
 
   return (
     <AppShell>
       <section className="add-password-page">
-        <form className="add-password-form" onSubmit={handleSubmit}>
-          <label className="add-password-form__field">
-            <span>Account Login:</span>
-            <input
-              type="text"
-              name="accountLogin"
-              value={formData.accountLogin}
-              onChange={handleInputChange}
-              placeholder="email@gmail.com"
-            />
-          </label>
+        <header className="add-password-page__header">
+          <h1>Add Password</h1>
+          <p>Save a new credential to your encrypted vault.</p>
+        </header>
 
-          <label className="add-password-form__field">
-            <span>Website Name:</span>
-            <input
-              type="text"
-              name="websiteName"
-              value={formData.websiteName}
-              onChange={handleInputChange}
-              placeholder="Gmail"
-            />
-          </label>
+        <div className="add-password-page-layout">
+          <form className="add-password-form" onSubmit={handleSubmit}>
+            <label className="add-password-form__field">
+              <span>Account Login:</span>
+              <input
+                type="text"
+                name="accountLogin"
+                value={formData.accountLogin}
+                onChange={handleInputChange}
+                placeholder="email@gmail.com"
+              />
+            </label>
 
-          <label className="add-password-form__field">
-            <span>Website URL:</span>
-            <input
-              type="text"
-              name="websiteUrl"
-              value={formData.websiteUrl}
-              onChange={handleInputChange}
-              placeholder="gmail.com"
-            />
-          </label>
+            <label className="add-password-form__field">
+              <span>Website Name:</span>
+              <input
+                type="text"
+                name="websiteName"
+                value={formData.websiteName}
+                onChange={handleInputChange}
+                placeholder="Gmail"
+              />
+            </label>
 
-          <label className="add-password-form__field">
-            <span>Password:</span>
-            <div className="add-password-form__input-row">
+            <label className="add-password-form__field add-password-form__field--wide">
+              <span>Website URL:</span>
+              <input
+                type="text"
+                name="websiteUrl"
+                value={formData.websiteUrl}
+                onChange={handleInputChange}
+                placeholder="gmail.com"
+              />
+            </label>
+
+            <label className="add-password-form__field">
+              <span>Password:</span>
+              <div className="add-password-form__input-row">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="**************"
+                />
+                <button
+                  className="add-password-form__icon-button"
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                </button>
+              </div>
+            </label>
+
+            <label className="add-password-form__field">
+              <span>Verify Password</span>
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
+                name="verifyPassword"
+                value={formData.verifyPassword}
                 onChange={handleInputChange}
                 placeholder="**************"
               />
+            </label>
+
+            <label className="add-password-form__field add-password-form__field--wide">
+              <span>Notes:</span>
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                placeholder="Optional notes"
+              />
+            </label>
+
+            {errors.form ? (
+              <p className="add-password-form__error add-password-form__field--wide">
+                {errors.form}
+              </p>
+            ) : null}
+            <div className="add-password-form__button-box">
               <button
-                className="add-password-form__icon-button"
+                className="add-password-form__button add-password-form__button--secondary"
                 type="button"
-                onClick={() => setShowPassword((current) => !current)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                title={showPassword ? "Hide password" : "Show password"}
+                onClick={() => generatePassword()}
               >
-                {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                Generate Password
+              </button>
+              <button
+                className="add-password-form__button"
+                type="submit"
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save"}
               </button>
             </div>
-          </label>
+          </form>
 
-          <label className="add-password-form__field">
-            <span>Verify Password</span>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="verifyPassword"
-              value={formData.verifyPassword}
-              onChange={handleInputChange}
-              placeholder="**************"
-            />
-          </label>
-
-          <label className="add-password-form__field">
-            <span>Notes:</span>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleInputChange}
-              placeholder="Optional notes"
-            />
-          </label>
-
-          {errors.form ? (
-            <p className="add-password-form__error">{errors.form}</p>
-          ) : null}
-          <div className="add-password-form__button-box">
-          <button
-            style={{fontSize:"1.4rem"}}
-            className="add-password-form__button"
-            type="button"
-            onClick={()=>generatePassword()}>
-            Generate Password
-          </button>
-          <button
-            className="add-password-form__button"
-            type="submit"
-            disabled={isSaving}
-            >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-            </div>
-        </form>
+        {/* Keep tips near the form so users see them while creating a new entry. */}
+        <aside className="password-tips" aria-label="Password tips">
+          <h2>Password Tips</h2>
+          <ul>
+            <li>Use a unique password for every account.</li>
+            <li>Use the generator when you do not need a memorable password.</li>
+            <li>Save the real website URL so search and lookup stay clear.</li>
+            <li>Never reuse your master password for another account.</li>
+          </ul>
+        </aside>
+        </div>
       </section>
       {showUnlockPrompt ? (
         <UnlockVaultModal

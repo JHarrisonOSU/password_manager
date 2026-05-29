@@ -86,109 +86,130 @@ export default function AccountSettingsPage() {
           <p>Manage extra security settings for your account.</p>
         </header>
 
-        <section className="mfa-settings" aria-labelledby="mfa-heading">
-          <div className="mfa-settings__intro">
-            <div>
-              <h2 id="mfa-heading">Multi-factor authentication</h2>
-              <p>
-                Add a one-time code from an authenticator app when signing in.
-              </p>
-            </div>
-            <span
-              className={`mfa-settings__status ${
-                isMfaEnabled
-                  ? "mfa-settings__status--enabled"
-                  : "mfa-settings__status--disabled"
-              }`}
-            >
-              {isMfaEnabled ? "Enabled" : "Not Enabled"}
-            </span>
-          </div>
+        <div className="account-settings-page__layout">
+          <div className="account-settings-page__main">
+            <section className="mfa-settings" aria-labelledby="mfa-heading">
+              <div className="mfa-settings__intro">
+                <div>
+                  <h2 id="mfa-heading">Multi-factor authentication</h2>
+                  <p>
+                    Add a one-time code from an authenticator app when signing
+                    in.
+                  </p>
+                </div>
+                <span
+                  className={`mfa-settings__status ${
+                    isMfaEnabled
+                      ? "mfa-settings__status--enabled"
+                      : "mfa-settings__status--disabled"
+                  }`}
+                >
+                  {isMfaEnabled ? "Enabled" : "Not Enabled"}
+                </span>
+              </div>
 
-          {!isMfaEnabled ? (
-            <>
-              <ol className="mfa-settings__steps">
-                <li>Generate a QR code.</li>
-                <li>Scan it with your authenticator app.</li>
-                <li>Enter the 6-digit code from the app.</li>
-                <li>Verify setup.</li>
-              </ol>
+              {!isMfaEnabled ? (
+                <>
+                  <ol className="mfa-settings__steps">
+                    <li>Generate a QR code.</li>
+                    <li>Scan it with your authenticator app.</li>
+                    <li>Enter the 6-digit code from the app.</li>
+                    <li>Verify setup.</li>
+                  </ol>
 
-              <button
-                className="mfa-settings__button"
-                type="button"
-                onClick={createQRCode}
-                disabled={isGeneratingQr || isVerifyingCode}
-              >
-                {isGeneratingQr ? "Generating..." : "Generate QR Code"}
-              </button>
+                  <button
+                    className="mfa-settings__button"
+                    type="button"
+                    onClick={createQRCode}
+                    disabled={isGeneratingQr || isVerifyingCode}
+                  >
+                    {isGeneratingQr ? "Generating..." : "Generate QR Code"}
+                  </button>
 
-              {qrCodeUri ? (
-                <div className="mfa-settings__setup">
-                  <div className="mfa-settings__qr">
-                    <QRCodeSVG value={qrCodeUri} size={160} />
-                  </div>
+                  {qrCodeUri ? (
+                    <div className="mfa-settings__setup">
+                      <div className="mfa-settings__qr">
+                        <QRCodeSVG value={qrCodeUri} size={160} />
+                      </div>
 
-                  {manualSecret ? (
-                    <div className="mfa-settings__manual">
-                      <p>Can’t scan? Enter this setup key manually:</p>
-                      <code>{formatSecret(manualSecret)}</code>
+                      {manualSecret ? (
+                        <div className="mfa-settings__manual">
+                          <p>Can’t scan? Enter this setup key manually:</p>
+                          <code>{formatSecret(manualSecret)}</code>
+                        </div>
+                      ) : null}
+
+                      <div className="mfa-settings__verify-row">
+                        <label className="mfa-settings__field">
+                          <span>Verification Code:</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={mfaCode}
+                            onChange={(event) =>
+                              setMfaCode(event.target.value)
+                            }
+                            disabled={isVerifyingCode}
+                            placeholder="123456"
+                          />
+                        </label>
+
+                        <button
+                          className="mfa-settings__button"
+                          type="button"
+                          onClick={verifyQRCode}
+                          disabled={isVerifyingCode}
+                        >
+                          {isVerifyingCode
+                            ? "Verifying..."
+                            : "Verify MFA Setup"}
+                        </button>
+                      </div>
                     </div>
                   ) : null}
+                </>
+              ) : (
+                <p className="mfa-settings__enabled-copy">
+                  MFA is active. You will be asked for an authenticator code the
+                  next time you sign in.
+                </p>
+              )}
 
-                  <div className="mfa-settings__verify-row">
-                    <label className="mfa-settings__field">
-                      <span>Verification Code:</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={mfaCode}
-                        onChange={(event) => setMfaCode(event.target.value)}
-                        disabled={isVerifyingCode}
-                        placeholder="123456"
-                      />
-                    </label>
-
-                    <button
-                      className="mfa-settings__button"
-                      type="button"
-                      onClick={verifyQRCode}
-                      disabled={isVerifyingCode}
-                    >
-                      {isVerifyingCode ? "Verifying..." : "Verify MFA Setup"}
-                    </button>
-                  </div>
-                </div>
+              {error ? (
+                <p className="account-settings-form__error">{error}</p>
               ) : null}
-            </>
-          ) : (
-            <p className="mfa-settings__enabled-copy">
-              MFA is active. You will be asked for an authenticator code the
-              next time you sign in.
-            </p>
-          )}
+              {successMessage ? (
+                <p className="account-settings-form__success">
+                  {successMessage}
+                </p>
+              ) : null}
+            </section>
 
-          {error ? (
-            <p className="account-settings-form__error">{error}</p>
-          ) : null}
-          {successMessage ? (
-            <p className="account-settings-form__success">{successMessage}</p>
-          ) : null}
-        </section>
+            {showDebugTools ? (
+              <section className="account-settings-debug">
+                <h2>Debug Tools</h2>
+                <button
+                  className="mfa-settings__button"
+                  type="button"
+                  onClick={checkUserInfo}
+                >
+                  Check User Info
+                </button>
+                {debugMessage ? <pre>{debugMessage}</pre> : null}
+              </section>
+            ) : null}
+          </div>
 
-        {showDebugTools ? (
-          <section className="account-settings-debug">
-            <h2>Debug Tools</h2>
-            <button
-              className="mfa-settings__button"
-              type="button"
-              onClick={checkUserInfo}
-            >
-              Check User Info
-            </button>
-            {debugMessage ? <pre>{debugMessage}</pre> : null}
-          </section>
-        ) : null}
+          {/* This keeps the settings page aligned with other dashboard side panels. */}
+          <aside className="account-settings-summary" aria-label="Security tips">
+            <h2>Security Tips</h2>
+            <ul>
+              <li>Use MFA with an authenticator app instead of SMS.</li>
+              <li>Keep your device clock set automatically for fresh codes.</li>
+              <li>Logging out clears the local vault key from this browser.</li>
+            </ul>
+          </aside>
+        </div>
       </section>
     </AppShell>
   );

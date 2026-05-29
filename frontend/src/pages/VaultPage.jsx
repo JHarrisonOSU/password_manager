@@ -43,6 +43,8 @@ export default function VaultPage() {
   const visibleCredentials = showAllCredentials
     ? sortedCredentials
     : sortedCredentials.slice(0, 3);
+  const visibleCount = visibleCredentials.length;
+  const matchingCount = sortedCredentials.length;
 
   useEffect(() => {
     async function loadVaultItems() {
@@ -172,72 +174,107 @@ export default function VaultPage() {
   return (
     <AppShell>
       <section className="vault-page">
-        {!isVaultUnlocked ? (
-          <p className="vault-page__locked">
-            Vault locked. Select a credential to unlock it.
-          </p>
-        ) : null}
+        <header className="vault-page__header">
+          <h1>All Passwords</h1>
+          <p>Search and manage your saved credentials.</p>
+        </header>
 
-        <input
-          className="vault-page__search"
-          type="search"
-          placeholder="Search passwords"
-          aria-label="Search passwords"
-          value={searchQuery}
-          onChange={(event) => {
-            // Search stays local because the backend already returned the safe metadata.
-            setSearchQuery(event.target.value);
-            setShowAllCredentials(false);
-          }}
-        />
+        <div className="vault-page-layout">
+          <div className="vault-page__main">
+          {!isVaultUnlocked ? (
+            <p className="vault-page__locked">
+              Vault locked. Select a credential to unlock it.
+            </p>
+          ) : null}
 
-        {/* Shows while GET /vault is still loading. */}
-        {isLoading ? <p>Loading vault...</p> : null}
+          <input
+            className="vault-page__search"
+            type="search"
+            placeholder="Search passwords"
+            aria-label="Search passwords"
+            value={searchQuery}
+            onChange={(event) => {
+              // Search stays local because the backend already returned the safe metadata.
+              setSearchQuery(event.target.value);
+              setShowAllCredentials(false);
+            }}
+          />
 
-        {/* Shows backend or network errors from loading the vault. */}
-        {errorMessage ? <p>{errorMessage}</p> : null}
-        {credentialError ? <p>{credentialError}</p> : null}
-        {statusMessage ? (
-          <p
-            className={`vault-page__status vault-page__status--${statusMessage.type}`}
-          >
-            {statusMessage.text}
-          </p>
-        ) : null}
+          {/* Shows while GET /vault is still loading. */}
+          {isLoading ? <p>Loading vault...</p> : null}
 
-        {/* Shows when the backend works but the user has no saved passwords yet. */}
-        {!isLoading && !errorMessage && credentials.length === 0 ? (
-          <p>No saved passwords yet.</p>
-        ) : null}
+          {/* Shows backend or network errors from loading the vault. */}
+          {errorMessage ? <p>{errorMessage}</p> : null}
+          {credentialError ? <p>{credentialError}</p> : null}
+          {statusMessage ? (
+            <p
+              className={`vault-page__status vault-page__status--${statusMessage.type}`}
+            >
+              {statusMessage.text}
+            </p>
+          ) : null}
 
-        {/* Shows when the vault has items, but none match the current search. */}
-        {!isLoading &&
-        !errorMessage &&
-        credentials.length > 0 &&
-        sortedCredentials.length === 0 ? (
-          <p>No passwords match your search.</p>
-        ) : null}
+          {/* Shows when the backend works but the user has no saved passwords yet. */}
+          {!isLoading && !errorMessage && credentials.length === 0 ? (
+            <p>No saved passwords yet.</p>
+          ) : null}
 
-        {!isLoading && !errorMessage ? (
-          <div className="vault-page__list">
-            {visibleCredentials.map((credential) => (
-              <CredentialRow
-                credential={credential}
-                key={credential.id}
-                onSelect={handleSelectCredential}
-              />
-            ))}
+          {/* Shows when the vault has items, but none match the current search. */}
+          {!isLoading &&
+          !errorMessage &&
+          credentials.length > 0 &&
+          sortedCredentials.length === 0 ? (
+            <p>No passwords match your search.</p>
+          ) : null}
+
+          {!isLoading && !errorMessage ? (
+            <div className="vault-page__list">
+              {visibleCredentials.map((credential) => (
+                <CredentialRow
+                  credential={credential}
+                  key={credential.id}
+                  onSelect={handleSelectCredential}
+                />
+              ))}
+            </div>
+          ) : null}
+          {sortedCredentials.length > 3 ? (
+            <button
+              className="vault-page__show-more"
+              type="button"
+              onClick={() => setShowAllCredentials((current) => !current)}
+            >
+              {showAllCredentials ? "Show Less" : "Show More"}
+            </button>
+          ) : null}
           </div>
-        ) : null}
-        {sortedCredentials.length > 3 ? (
-          <button
-            className="vault-page__show-more"
-            type="button"
-            onClick={() => setShowAllCredentials((current) => !current)}
-          >
-            {showAllCredentials ? "Show Less" : "Show More"}
-          </button>
-        ) : null}
+
+        <aside className="vault-summary" aria-label="Vault summary">
+          <h2>Vault Summary</h2>
+          <dl className="vault-summary__stats">
+            <div>
+              <dt>Total Saved</dt>
+              <dd>{credentials.length}</dd>
+            </div>
+            <div>
+              <dt>Matching Search</dt>
+              <dd>{matchingCount}</dd>
+            </div>
+            <div>
+              <dt>Showing</dt>
+              <dd>{visibleCount}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{isVaultUnlocked ? "Unlocked" : "Locked"}</dd>
+            </div>
+          </dl>
+          <p>
+            Password details are decrypted only after you select an entry. If
+            the vault is locked, you’ll be asked for your master password first.
+          </p>
+        </aside>
+        </div>
       </section>
       {showUnlockPrompt ? (
         <UnlockVaultModal

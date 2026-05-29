@@ -2,7 +2,7 @@
   Keeps security controls readable without making the settings page feel busy. */
 
 .account-settings-page {
-  width: min(100%, 900px);
+  width: min(100%, 1180px);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -19,6 +19,19 @@
   color: #4d5562;
   font-size: 1.1rem;
   line-height: 1.4;
+}
+
+.account-settings-page__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.account-settings-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .mfa-settings {
@@ -55,6 +68,37 @@
   background-color: #f4f6f8;
   color: var(--color-dark);
   overflow-x: auto;
+}
+
+.account-settings-summary {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+}
+
+.account-settings-summary h2 {
+  margin: 0;
+  color: var(--color-dark);
+  font-size: 1.25rem;
+}
+
+.account-settings-summary ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.account-settings-summary li {
+  color: #4d5562;
+  line-height: 1.4;
 }
 
 .mfa-settings__intro {
@@ -182,6 +226,11 @@
 @media (max-width: 768px) {
   .account-settings-page {
     width: 100%;
+  }
+
+  .account-settings-page__layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .account-settings-page__header h1 {
