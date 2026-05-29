@@ -55,6 +55,26 @@
   cursor: pointer;
 }
 
+.auth-page__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.auth-page__input:disabled {
+  background-color: #f4f6f8;
+  cursor: not-allowed;
+}
+
+.auth-page__message {
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.auth-page__message--error {
+  color: var(--color-danger);
+}
+
 .auth-page__footer {
   margin-top: 2rem;
   font-size: clamp(1.1rem, 2vw, 1.8rem);
