@@ -3,9 +3,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
-import { encryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
-import { normalizeWebsiteUrl } from "../lib/websiteUtils";
+import { generatePasswordSuggestion } from "../lib/passwordUtils";
+import {
+  buildVaultCreatePayload,
+  validateVaultItemForm,
+} from "../lib/vaultItemUtils";
 import { createVaultItem } from "../services/authService";
 
 const initialFormData = {
@@ -41,7 +44,7 @@ export default function AddPasswordPage() {
 
     // Validate before we try to encrypt or send anything to the backend.
     setErrors({});
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateVaultItemForm(formData);
 
     if (validationErrors.form) {
       setErrors(validationErrors);
@@ -67,30 +70,8 @@ export default function AddPasswordPage() {
     setIsSaving(true);
 
     try {
-      const normalizedWebsiteUrl = normalizeWebsiteUrl(formData.websiteUrl);
-
-      if (!normalizedWebsiteUrl) {
-        throw new Error("Enter a valid website, like discord.com.");
-      }
-
-      // Encrypt the sensitive entry details in the browser before sending them.
-      // Website/login metadata stays in backend columns for searching and display.
-      const encryptedEntry = await encryptEntry(
-        {
-          password: formData.password,
-          notes: formData.notes.trim(),
-        },
-        currentVaultKey,
-      );
-
-      // Backend stores searchable metadata plus the encrypted password blob.
-      await createVaultItem(token, {
-        website_name: formData.websiteName.trim(),
-        website_url: normalizedWebsiteUrl,
-        username: formData.accountLogin.trim(),
-        encrypted_blob: encryptedEntry.ciphertext,
-        iv: encryptedEntry.iv,
-      });
+      const payload = await buildVaultCreatePayload(formData, currentVaultKey);
+      await createVaultItem(token, payload);
 
       navigate("/vault");
     } catch (err) {
@@ -101,20 +82,7 @@ export default function AddPasswordPage() {
   }
 
   function generatePassword(length=32) {
-    // Builds a 32-character suggestion by mixing user input with random characters.
-    // If user has no input, generates a 32-length random password.
-    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*"
-    const base = formData.password
-    let generated = base;
-    const remaining = Math.max(length - base.length, 0);
-    const array = new Uint32Array(remaining)
-    window.crypto.getRandomValues(array)
-    for (let i = 0; i < remaining; i ++) {
-      generated += chars[array[i] % chars.length]
-    }
-    generated = generated.split("")
-    .sort(() => Math.random() - 0.5)
-    .join("");
+    const generated = generatePasswordSuggestion(formData.password, length);
 
     setFormData((currentFormData) => ({
       ...currentFormData,
@@ -232,31 +200,4 @@ export default function AddPasswordPage() {
       ) : null}
     </AppShell>
   );
-}
-
-function validateForm(formData) {
-  const accountLogin = formData.accountLogin.trim();
-  const websiteName = formData.websiteName.trim();
-  const websiteUrl = formData.websiteUrl.trim();
-  const normalizedWebsiteUrl = normalizeWebsiteUrl(websiteUrl);
-
-  if (
-    !accountLogin ||
-    !websiteName ||
-    !websiteUrl ||
-    !formData.password ||
-    !formData.verifyPassword
-  ) {
-    return { form: "Please fill out every field." };
-  }
-
-  if (!normalizedWebsiteUrl) {
-    return { form: "Enter a valid website, like discord.com." };
-  }
-
-  if (formData.password !== formData.verifyPassword) {
-    return { form: "Passwords do not match." };
-  }
-
-  return {};
 }

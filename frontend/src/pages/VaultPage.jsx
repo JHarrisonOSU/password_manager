@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import AppShell from "../components/layout/AppShell";
 import CredentialDetailsModal from "../components/forms/CredentialDetailsModal";
+import CredentialRow from "../components/vault/CredentialRow";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
-import { decryptEntry, encryptEntry } from "../crypto/VaultCrypto";
+import { decryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
+import {
+  buildVaultUpdatePayload,
+  credentialMatchesSearch,
+  sortCredentialsByWebsiteName,
+} from "../lib/vaultItemUtils";
 import {
   deleteVaultItem,
   getVaultItems,
   updateVaultItem,
 } from "../services/authService";
-import { normalizeWebsiteUrl } from "../lib/websiteUtils";
 
 export default function VaultPage() {
   // Track creds, whether the GET /vault request is still running, and any error.
@@ -34,9 +39,10 @@ export default function VaultPage() {
         credentialMatchesSearch(credential, normalizedSearchQuery),
       )
     : credentials;
+  const sortedCredentials = sortCredentialsByWebsiteName(filteredCredentials);
   const visibleCredentials = showAllCredentials
-    ? filteredCredentials
-    : filteredCredentials.slice(0, 3);
+    ? sortedCredentials
+    : sortedCredentials.slice(0, 3);
 
   useEffect(() => {
     async function loadVaultItems() {
@@ -122,31 +128,11 @@ export default function VaultPage() {
       throw new Error("Unlock your vault before editing this password.");
     }
 
-    // Only password details are re-encrypted; name/url/login stay as metadata.
-    const normalizedWebsiteUrl = normalizeWebsiteUrl(updatedDetails.websiteUrl);
-
-    if (!normalizedWebsiteUrl) {
-      throw new Error("Enter a valid website, like discord.com.");
-    }
-
-    const encryptedDetails = {
-      password: updatedDetails.password,
-      notes: updatedDetails.notes,
-    };
-    const savedFormData = {
-      ...encryptedDetails,
-      accountLogin: updatedDetails.accountLogin,
-      websiteName: updatedDetails.websiteName,
-      websiteUrl: normalizedWebsiteUrl,
-    };
-    const encryptedEntry = await encryptEntry(encryptedDetails, vaultKey);
-    const updatedCredential = await updateVaultItem(token, credentialId, {
-      website_name: updatedDetails.websiteName,
-      website_url: normalizedWebsiteUrl,
-      username: updatedDetails.accountLogin,
-      encrypted_blob: encryptedEntry.ciphertext,
-      iv: encryptedEntry.iv,
-    });
+    const { payload, savedFormData } = await buildVaultUpdatePayload(
+      updatedDetails,
+      vaultKey,
+    );
+    const updatedCredential = await updateVaultItem(token, credentialId, payload);
 
     // Keep the page in sync immediately instead of forcing a full vault refetch.
     setCredentials((currentCredentials) =>
@@ -228,40 +214,22 @@ export default function VaultPage() {
         {!isLoading &&
         !errorMessage &&
         credentials.length > 0 &&
-        filteredCredentials.length === 0 ? (
+        sortedCredentials.length === 0 ? (
           <p>No passwords match your search.</p>
         ) : null}
 
         {!isLoading && !errorMessage ? (
           <div className="vault-page__list">
-            {visibleCredentials.map((credential) => {
-              const credentialMeta = getCredentialRowMeta(credential);
-
-              return (
-                <article className="credential-row" key={credential.id}>
-                  <div className="credential-row__info">
-                    <h2 className="credential-row__title">
-                      {/* Backend returns website_name, not website. */}
-                      {credential.website_name || "Untitled website"}
-                    </h2>
-                    {credentialMeta ? (
-                      <p className="credential-row__meta">{credentialMeta}</p>
-                    ) : null}
-                  </div>
-
-                  <button
-                    className="credential-row__button"
-                    type="button"
-                    onClick={() => handleSelectCredential(credential)}
-                  >
-                    Select
-                  </button>
-                </article>
-              );
-            })}
+            {visibleCredentials.map((credential) => (
+              <CredentialRow
+                credential={credential}
+                key={credential.id}
+                onSelect={handleSelectCredential}
+              />
+            ))}
           </div>
         ) : null}
-        {filteredCredentials.length > 3 ? (
+        {sortedCredentials.length > 3 ? (
           <button
             className="vault-page__show-more"
             type="button"
@@ -291,21 +259,4 @@ export default function VaultPage() {
       ) : null}
     </AppShell>
   );
-}
-
-function credentialMatchesSearch(credential, normalizedSearchQuery) {
-  // Search only website fields so usernames do not unexpectedly match.
-  const searchableText = [credential.website_name, credential.website_url]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  return searchableText.includes(normalizedSearchQuery);
-}
-
-function getCredentialRowMeta(credential) {
-  // Show the most useful safe metadata on the row without exposing passwords.
-  return [credential.username, credential.website_url]
-    .filter(Boolean)
-    .join(" - ");
 }
