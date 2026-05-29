@@ -204,7 +204,7 @@
 
 .credential-modal__input-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: stretch;
   border: 2px solid #1b1b1b;
   border-radius: var(--radius-sm);
@@ -219,12 +219,23 @@
 }
 
 .credential-modal__input-row button {
-  min-width: 86px;
+  width: 52px;
+  min-width: 52px;
   border: 0;
   border-left: 2px solid #1b1b1b;
   background: var(--color-primary-soft);
   color: var(--color-dark);
   cursor: pointer;
+}
+
+.credential-modal__icon-button {
+  display: grid;
+  place-items: center;
+}
+
+.credential-modal__input-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
 .credential-modal__actions {

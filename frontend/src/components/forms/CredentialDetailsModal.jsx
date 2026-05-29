@@ -1,3 +1,4 @@
+import { Copy, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 // Credential detail modal based on the prototype. It starts in read-only mode,
@@ -44,17 +45,21 @@ export default function CredentialDetailsModal({
   async function handleSave() {
     const cleanedFormData = {
       accountLogin: formData.accountLogin.trim(),
-      website: formData.website.trim(),
+      websiteName: formData.websiteName.trim(),
+      websiteUrl: formData.websiteUrl.trim(),
       password: formData.password,
       notes: formData.notes.trim(),
     };
 
     if (
       !cleanedFormData.accountLogin ||
-      !cleanedFormData.website ||
+      !cleanedFormData.websiteName ||
+      !cleanedFormData.websiteUrl ||
       !cleanedFormData.password
     ) {
-      setErrorMessage("Account login, website, and password are required.");
+      setErrorMessage(
+        "Account login, website name, website URL, and password are required.",
+      );
       return;
     }
 
@@ -88,6 +93,19 @@ export default function CredentialDetailsModal({
     }
   }
 
+  async function handleCopyPassword() {
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      // Clipboard access must happen from a button click, so keep it here.
+      await navigator.clipboard.writeText(formData.password);
+      setSuccessMessage("Password copied.");
+    } catch {
+      setErrorMessage("Could not copy password.");
+    }
+  }
+
   const actionInProgress = isSaving || isDeleting;
 
   return (
@@ -114,10 +132,20 @@ export default function CredentialDetailsModal({
         </label>
 
         <label className="credential-modal__field">
-          <span>Website:</span>
+          <span>Website Name:</span>
           <input
-            name="website"
-            value={formData.website}
+            name="websiteName"
+            value={formData.websiteName}
+            onChange={handleFieldChange}
+            readOnly={!isEditing}
+          />
+        </label>
+
+        <label className="credential-modal__field">
+          <span>Website URL:</span>
+          <input
+            name="websiteUrl"
+            value={formData.websiteUrl}
             onChange={handleFieldChange}
             readOnly={!isEditing}
           />
@@ -134,10 +162,23 @@ export default function CredentialDetailsModal({
               readOnly={!isEditing}
             />
             <button
+              className="credential-modal__icon-button"
               type="button"
               onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              title={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+            </button>
+            <button
+              className="credential-modal__icon-button"
+              type="button"
+              onClick={handleCopyPassword}
+              disabled={!formData.password}
+              aria-label="Copy password"
+              title="Copy password"
+            >
+              <Copy size={22} />
             </button>
           </div>
         </label>
@@ -229,14 +270,11 @@ export default function CredentialDetailsModal({
 }
 
 function getCredentialFormData(credential, decryptedEntry) {
-  // Prefer decrypted values, but fall back to backend metadata for list fields.
+  // Backend metadata owns these display fields; the blob only stores secrets.
   return {
-    accountLogin: decryptedEntry.accountLogin || credential.username || "",
-    website:
-      decryptedEntry.website ||
-      credential.website_url ||
-      credential.website_name ||
-      "",
+    accountLogin: credential.username || "",
+    websiteName: credential.website_name || "",
+    websiteUrl: credential.website_url || "",
     password: decryptedEntry.password || "",
     notes: decryptedEntry.notes || "",
   };

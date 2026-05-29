@@ -9,6 +9,7 @@ import {
   getVaultItems,
   updateVaultItem,
 } from "../services/authService";
+import { normalizeWebsiteUrl } from "../lib/websiteUtils";
 
 export default function VaultPage() {
   // Track creds, whether the GET /vault request is still running, and any error.
@@ -121,12 +122,27 @@ export default function VaultPage() {
       throw new Error("Unlock your vault before editing this password.");
     }
 
-    // Notes live inside the encrypted blob for now, so the backend only sees
-    // searchable metadata plus the newly encrypted entry.
-    const encryptedEntry = await encryptEntry(updatedDetails, vaultKey);
+    // Only password details are re-encrypted; name/url/login stay as metadata.
+    const normalizedWebsiteUrl = normalizeWebsiteUrl(updatedDetails.websiteUrl);
+
+    if (!normalizedWebsiteUrl) {
+      throw new Error("Enter a valid website, like discord.com.");
+    }
+
+    const encryptedDetails = {
+      password: updatedDetails.password,
+      notes: updatedDetails.notes,
+    };
+    const savedFormData = {
+      ...encryptedDetails,
+      accountLogin: updatedDetails.accountLogin,
+      websiteName: updatedDetails.websiteName,
+      websiteUrl: normalizedWebsiteUrl,
+    };
+    const encryptedEntry = await encryptEntry(encryptedDetails, vaultKey);
     const updatedCredential = await updateVaultItem(token, credentialId, {
-      website_name: updatedDetails.website,
-      website_url: updatedDetails.website,
+      website_name: updatedDetails.websiteName,
+      website_url: normalizedWebsiteUrl,
       username: updatedDetails.accountLogin,
       encrypted_blob: encryptedEntry.ciphertext,
       iv: encryptedEntry.iv,
@@ -140,13 +156,13 @@ export default function VaultPage() {
     );
 
     setSelectedCredential(updatedCredential);
-    setSelectedCredentialDetails(updatedDetails);
+    setSelectedCredentialDetails(savedFormData);
     setStatusMessage({
       type: "success",
       text: "Password updated.",
     });
 
-    return updatedDetails;
+    return savedFormData;
   }
 
   async function openCredentialDetails(credential, currentVaultKey) {
