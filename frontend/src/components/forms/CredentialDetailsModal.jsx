@@ -1,22 +1,73 @@
 import { useState } from "react";
 
-// Read-only credential view based on the prototype modal. Edit is still
-// disabled, but Delete now calls back to VaultPage so it can remove the row.
+// Credential detail modal based on the prototype. It starts in read-only mode,
+// then switches into a small edit form when the user chooses Edit.
 export default function CredentialDetailsModal({
   credential,
   decryptedEntry,
   onClose,
   onDelete,
+  onSave,
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Prefer decrypted values, but fall back to backend metadata for list fields.
-  const accountLogin = decryptedEntry.accountLogin || credential.username || "";
-  const website =
-    decryptedEntry.website || credential.website_url || credential.website_name || "";
-  const password = decryptedEntry.password || "";
-  const notes = decryptedEntry.notes || "";
+  // The form state is separate from decryptedEntry so typing does not mutate
+  // the saved value until Save finishes successfully.
+  const [formData, setFormData] = useState(() =>
+    getCredentialFormData(credential, decryptedEntry),
+  );
+
+  function handleFieldChange(event) {
+    const { name, value } = event.target;
+
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      [name]: value,
+    }));
+  }
+
+  function handleCancelEdit() {
+    // Throw away unsaved edits and return to the last decrypted saved values.
+    setFormData(getCredentialFormData(credential, decryptedEntry));
+    setIsEditing(false);
+    setErrorMessage("");
+  }
+
+  async function handleSave() {
+    const cleanedFormData = {
+      accountLogin: formData.accountLogin.trim(),
+      website: formData.website.trim(),
+      password: formData.password,
+      notes: formData.notes.trim(),
+    };
+
+    if (
+      !cleanedFormData.accountLogin ||
+      !cleanedFormData.website ||
+      !cleanedFormData.password
+    ) {
+      setErrorMessage("Account login, website, and password are required.");
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMessage("");
+
+    try {
+      // VaultPage owns the actual API call because it has the token and vault key.
+      const savedFormData = await onSave(credential.id, cleanedFormData);
+      setFormData(savedFormData);
+      setIsEditing(false);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to save credential");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div className="credential-modal__overlay">
@@ -32,21 +83,33 @@ export default function CredentialDetailsModal({
 
         <label className="credential-modal__field">
           <span>Account Login:</span>
-          <input value={accountLogin} readOnly />
+          <input
+            name="accountLogin"
+            value={formData.accountLogin}
+            onChange={handleFieldChange}
+            readOnly={!isEditing}
+          />
         </label>
 
         <label className="credential-modal__field">
           <span>Website:</span>
-          <input value={website} readOnly />
+          <input
+            name="website"
+            value={formData.website}
+            onChange={handleFieldChange}
+            readOnly={!isEditing}
+          />
         </label>
 
         <label className="credential-modal__field">
           <span>Password:</span>
           <div className="credential-modal__input-row">
             <input
+              name="password"
               type={showPassword ? "text" : "password"}
-              value={password}
-              readOnly
+              value={formData.password}
+              onChange={handleFieldChange}
+              readOnly={!isEditing}
             />
             <button
               type="button"
@@ -59,16 +122,57 @@ export default function CredentialDetailsModal({
 
         <label className="credential-modal__field">
           <span>Notes:</span>
-          <input value={notes} readOnly placeholder="No notes saved" />
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleFieldChange}
+            readOnly={!isEditing}
+            placeholder="No notes saved"
+          />
         </label>
 
+        {errorMessage ? (
+          <p className="credential-modal__error">{errorMessage}</p>
+        ) : null}
+
         <div className="credential-modal__actions">
-          <button type="button" disabled>
-            Edit
-          </button>
-          <button type="button" onClick={() => setIsConfirmingDelete(true)}>
-            Delete
-          </button>
+          {isEditing ? (
+            <>
+              <button
+                className="credential-modal__save-button"
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+              <button
+                className="credential-modal__cancel-button"
+                type="button"
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="credential-modal__edit-button"
+                type="button"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit
+              </button>
+              <button
+                className="credential-modal__delete-button"
+                type="button"
+                onClick={() => setIsConfirmingDelete(true)}
+              >
+                Delete
+              </button>
+            </>
+          )}
         </div>
 
         {isConfirmingDelete ? (
@@ -90,4 +194,18 @@ export default function CredentialDetailsModal({
       </section>
     </div>
   );
+}
+
+function getCredentialFormData(credential, decryptedEntry) {
+  // Prefer decrypted values, but fall back to backend metadata for list fields.
+  return {
+    accountLogin: decryptedEntry.accountLogin || credential.username || "",
+    website:
+      decryptedEntry.website ||
+      credential.website_url ||
+      credential.website_name ||
+      "",
+    password: decryptedEntry.password || "",
+    notes: decryptedEntry.notes || "",
+  };
 }

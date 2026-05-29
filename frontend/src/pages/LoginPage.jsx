@@ -13,7 +13,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const [showErrorMsg, setShowErrorMsg] = useState(false);
   const [showTotp, setShowTotp] = useState(false);
   const [resolver, setResolver] = useState(null);
   const [errorMsg, setErrorMsg] = useState("")
@@ -21,7 +20,7 @@ export default function LoginPage() {
 
   async function handleLoginSubmit(e) {
     e.preventDefault();
-    setShowErrorMsg(false);
+    setErrorMsg("");
 
     try {
       // 1. Fetch salts
@@ -63,7 +62,6 @@ export default function LoginPage() {
     } catch (err) { 
       console.log(err.message)
       setErrorMsg(err.message)
-      setShowErrorMsg(true);
     }
   }
 

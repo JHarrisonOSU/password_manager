@@ -2,9 +2,13 @@ import { useEffect, useState } from "react";
 import AppShell from "../components/layout/AppShell";
 import CredentialDetailsModal from "../components/forms/CredentialDetailsModal";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
-import { decryptEntry } from "../crypto/VaultCrypto";
+import { decryptEntry, encryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
-import { deleteVaultItem, getVaultItems } from "../services/authService";
+import {
+  deleteVaultItem,
+  getVaultItems,
+  updateVaultItem,
+} from "../services/authService";
 
 export default function VaultPage() {
   // Track creds, whether the GET /vault request is still running, and any error.
@@ -89,6 +93,35 @@ export default function VaultPage() {
     } catch (err) {
       setCredentialError(err.message || "Failed to delete credential");
     }
+  }
+
+  async function handleSaveCredential(credentialId, updatedDetails) {
+    if (!vaultKey) {
+      throw new Error("Unlock your vault before editing this password.");
+    }
+
+    // Notes live inside the encrypted blob for now, so the backend only sees
+    // searchable metadata plus the newly encrypted entry.
+    const encryptedEntry = await encryptEntry(updatedDetails, vaultKey);
+    const updatedCredential = await updateVaultItem(token, credentialId, {
+      website_name: updatedDetails.website,
+      website_url: updatedDetails.website,
+      username: updatedDetails.accountLogin,
+      encrypted_blob: encryptedEntry.ciphertext,
+      iv: encryptedEntry.iv,
+    });
+
+    // Keep the page in sync immediately instead of forcing a full vault refetch.
+    setCredentials((currentCredentials) =>
+      currentCredentials.map((credential) =>
+        credential.id === credentialId ? updatedCredential : credential,
+      ),
+    );
+
+    setSelectedCredential(updatedCredential);
+    setSelectedCredentialDetails(updatedDetails);
+
+    return updatedDetails;
   }
 
   async function openCredentialDetails(credential, currentVaultKey) {
@@ -179,6 +212,7 @@ export default function VaultPage() {
           credential={selectedCredential}
           decryptedEntry={selectedCredentialDetails}
           onDelete={handleDeleteCredential}
+          onSave={handleSaveCredential}
           onClose={() => {
             setSelectedCredential(null);
             setSelectedCredentialDetails(null);

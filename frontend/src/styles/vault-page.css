@@ -150,7 +150,8 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
-.credential-modal__field input {
+.credential-modal__field input,
+.credential-modal__field textarea {
   width: 100%;
   min-height: 64px;
   padding: 0.75rem 1rem;
@@ -159,6 +160,16 @@
   background: var(--color-white);
   color: var(--color-text-muted);
   font-size: 1.5rem;
+}
+
+.credential-modal__field textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.credential-modal__field input:not([readonly]),
+.credential-modal__field textarea:not([readonly]) {
+  color: var(--color-dark);
 }
 
 .credential-modal__input-row {
@@ -202,17 +213,27 @@
   font-size: 2rem;
 }
 
-.credential-modal__actions button:first-child {
+.credential-modal__edit-button,
+.credential-modal__save-button,
+.credential-modal__cancel-button {
   background: var(--color-primary-soft);
 }
 
-.credential-modal__actions button:last-child {
+.credential-modal__delete-button {
   background: #ffa5aa;
 }
 
 .credential-modal__actions button:disabled {
   cursor: not-allowed;
   opacity: 0.75;
+}
+
+.credential-modal__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #9f1d24;
+  font-weight: 600;
+  text-align: center;
 }
 
 .credential-modal__confirm {
@@ -293,7 +314,8 @@
     font-size: 1.2rem;
   }
 
-  .credential-modal__field input {
+  .credential-modal__field input,
+  .credential-modal__field textarea {
     min-height: 52px;
     font-size: 1rem;
   }
