@@ -19,6 +19,8 @@ export default function AddPasswordPage() {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  // One toggle controls both password fields so the user can compare them.
+  const [showPassword, setShowPassword] = useState(false);
   const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
   const { token, vaultKey, isVaultUnlocked, unlockVault } = useAuth();
   
@@ -142,19 +144,27 @@ export default function AddPasswordPage() {
 
           <label className="add-password-form__field">
             <span>Password:</span>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="**************"
-            />
+            <div className="add-password-form__input-row">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="**************"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </label>
 
           <label className="add-password-form__field">
             <span>Verify Password</span>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="verifyPassword"
               value={formData.verifyPassword}
               onChange={handleInputChange}

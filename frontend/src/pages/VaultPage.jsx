@@ -15,6 +15,7 @@ export default function VaultPage() {
   const [credentials, setCredentials] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showAllCredentials, setShowAllCredentials] = useState(false);
   const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
   const [pendingCredential, setPendingCredential] = useState(null);
@@ -25,9 +26,15 @@ export default function VaultPage() {
   // token is needed for the Authorization header; unlockVault restores the vault key after refresh.
   const { token, vaultKey, isVaultUnlocked, unlockVault } = useAuth();
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredCredentials = normalizedSearchQuery
+    ? credentials.filter((credential) =>
+        credentialMatchesSearch(credential, normalizedSearchQuery),
+      )
+    : credentials;
   const visibleCredentials = showAllCredentials
-    ? credentials
-    : credentials.slice(0, 3);
+    ? filteredCredentials
+    : filteredCredentials.slice(0, 3);
 
   useEffect(() => {
     async function loadVaultItems() {
@@ -156,7 +163,12 @@ export default function VaultPage() {
           type="search"
           placeholder="Search passwords"
           aria-label="Search passwords"
-          // TODO: Connect this <input to local filtering or a backend search endpoint.
+          value={searchQuery}
+          onChange={(event) => {
+            // Search stays local because the backend already returned the safe metadata.
+            setSearchQuery(event.target.value);
+            setShowAllCredentials(false);
+          }}
         />
 
         {/* Shows while GET /vault is still loading. */}
@@ -169,6 +181,14 @@ export default function VaultPage() {
         {/* Shows when the backend works but the user has no saved passwords yet. */}
         {!isLoading && !errorMessage && credentials.length === 0 ? (
           <p>No saved passwords yet.</p>
+        ) : null}
+
+        {/* Shows when the vault has items, but none match the current search. */}
+        {!isLoading &&
+        !errorMessage &&
+        credentials.length > 0 &&
+        filteredCredentials.length === 0 ? (
+          <p>No passwords match your search.</p>
         ) : null}
 
         {!isLoading && !errorMessage ? (
@@ -191,7 +211,7 @@ export default function VaultPage() {
             ))}
           </div>
         ) : null}
-        {credentials.length > 3 ? (
+        {filteredCredentials.length > 3 ? (
           <button
             className="vault-page__show-more"
             type="button"
@@ -221,4 +241,18 @@ export default function VaultPage() {
       ) : null}
     </AppShell>
   );
+}
+
+function credentialMatchesSearch(credential, normalizedSearchQuery) {
+  // Only search backend metadata so we do not need to decrypt every password row.
+  const searchableText = [
+    credential.website_name,
+    credential.website_url,
+    credential.username,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return searchableText.includes(normalizedSearchQuery);
 }
