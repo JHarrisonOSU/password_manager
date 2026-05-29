@@ -1,3 +1,4 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
@@ -170,10 +171,13 @@ export default function AddPasswordPage() {
                 placeholder="**************"
               />
               <button
+                className="add-password-form__icon-button"
                 type="button"
                 onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
               </button>
             </div>
           </label>
