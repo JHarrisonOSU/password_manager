@@ -31,3 +31,9 @@
     font-size: 1rem;
   }
 }
+
+.account-settings-form__error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 1rem;
+}

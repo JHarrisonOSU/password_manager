@@ -21,7 +21,7 @@ export default function AddPasswordPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
   const { token, vaultKey, isVaultUnlocked, unlockVault } = useAuth();
-
+  
   function handleInputChange(event) {
     const { name, value } = event.target;
 
@@ -91,6 +91,29 @@ export default function AddPasswordPage() {
     }
   }
 
+  function generatePassword(length=32) {
+    // Generates a 32-length password bassed off user input. Mixes user input into length - password.length long randomly generated string. 
+    // If user has no input, generates a 32-length random password.
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*"
+    const base = formData.password
+    let generated = base;
+    const remaining = Math.max(length - base.length, 0);
+    const array = new Uint32Array(remaining)
+    window.crypto.getRandomValues(array)
+    for (let i = 0; i < remaining; i ++) {
+      generated += chars[array[i] % chars.length]
+    }
+    generated = generated.split("")
+    .sort(() => Math.random() - 0.5)
+    .join("");
+
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      password: generated,
+      verifyPassword: generated
+    }));
+  }
+
   return (
     <AppShell>
       <section className="add-password-page">
@@ -152,14 +175,22 @@ export default function AddPasswordPage() {
           {errors.form ? (
             <p className="add-password-form__error">{errors.form}</p>
           ) : null}
-
+          <div className="add-password-form__button-box">
+          <button
+            style={{fontSize:"1.4rem"}}
+            className="add-password-form__button"
+            type="button"
+            onClick={()=>generatePassword()}>
+            Generate Password
+          </button>
           <button
             className="add-password-form__button"
             type="submit"
             disabled={isSaving}
-          >
+            >
             {isSaving ? "Saving..." : "Save"}
           </button>
+            </div>
         </form>
       </section>
       {showUnlockPrompt ? (

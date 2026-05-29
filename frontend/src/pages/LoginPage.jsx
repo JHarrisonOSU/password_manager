@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [showErrorMsg, setShowErrorMsg] = useState(false);
   const [showTotp, setShowTotp] = useState(false);
   const [resolver, setResolver] = useState(null);
-
+  const [errorMsg, setErrorMsg] = useState("")
   const { login } = useAuth();
 
   async function handleLoginSubmit(e) {
@@ -48,7 +48,7 @@ export default function LoginPage() {
       } else if (loginData.token_type === "bearer") {
         authData = loginData;
       } else {
-        throw new Error("Unknown token type");
+          throw new Error("Unknown token type");
       }
 
       const vaultKey = await decryptVaultKey(encryption_key, authData);
@@ -60,9 +60,10 @@ export default function LoginPage() {
       });
 
       navigate("/vault");
-    } catch (err) {
+    } catch (err) { 
+      console.log(err.message)
+      setErrorMsg(err.message)
       setShowErrorMsg(true);
-      console.error(err.message);
     }
   }
 
@@ -159,7 +160,7 @@ export default function LoginPage() {
             </button>
           </form>
           {showTotp && <TotpInput onSubmit={handleTotpSubmit} />}
-          {showErrorMsg && <p className="">Invalid email or password</p>}
+          {errorMsg ? <p className="add-password-form__error">{errorMsg}</p> : null}
           <p className="auth-page__footer">
             Don’t have an account?{" "}
             <Link to="/register">Click here to register.</Link>

@@ -75,21 +75,21 @@ def mfa_verify_setup(
     if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="MFA setup not initiated",
+            detail="MFA setup not initiated.",
         )
 
     secret = rows[0]["mfa_secret"]
     if not pyotp.TOTP(secret).verify(body.code, valid_window=_TOTP_WINDOW):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid TOTP code",
+            detail="Invalid verification code. Please check the code and try again.",
         )
 
     supabase.table("users").update({"mfa_enabled": True}).eq(
         "id", current_user.id
     ).execute()
 
-    return {"message": "MFA enabled successfully"}
+    return {"message": "MFA enabled successfully."}
 
 
 @router.post("/verify", response_model=MFAVerifyResponse)
@@ -152,7 +152,7 @@ def mfa_verify(
 
     if not pyotp.TOTP(user["mfa_secret"]).verify(body.code, valid_window=_TOTP_WINDOW):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid TOTP code"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid verification code. Please check the code and try again."
         )
 
     token, expires_in = create_access_token(subject=str(user["id"]))
