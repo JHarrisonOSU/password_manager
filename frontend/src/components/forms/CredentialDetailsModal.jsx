@@ -13,7 +13,9 @@ export default function CredentialDetailsModal({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   // The form state is separate from decryptedEntry so typing does not mutate
   // the saved value until Save finishes successfully.
@@ -28,6 +30,7 @@ export default function CredentialDetailsModal({
       ...currentFormData,
       [name]: value,
     }));
+    setSuccessMessage("");
   }
 
   function handleCancelEdit() {
@@ -35,6 +38,7 @@ export default function CredentialDetailsModal({
     setFormData(getCredentialFormData(credential, decryptedEntry));
     setIsEditing(false);
     setErrorMessage("");
+    setSuccessMessage("");
   }
 
   async function handleSave() {
@@ -62,12 +66,29 @@ export default function CredentialDetailsModal({
       const savedFormData = await onSave(credential.id, cleanedFormData);
       setFormData(savedFormData);
       setIsEditing(false);
+      setSuccessMessage("Credential updated.");
     } catch (err) {
       setErrorMessage(err.message || "Failed to save credential");
     } finally {
       setIsSaving(false);
     }
   }
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      // VaultPage removes the row and closes this modal after the API succeeds.
+      await onDelete(credential.id);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to delete credential");
+      setIsDeleting(false);
+    }
+  }
+
+  const actionInProgress = isSaving || isDeleting;
 
   return (
     <div className="credential-modal__overlay">
@@ -76,6 +97,7 @@ export default function CredentialDetailsModal({
           className="credential-modal__close"
           type="button"
           onClick={onClose}
+          disabled={actionInProgress}
           aria-label="Close credential details"
         >
           ×
@@ -134,6 +156,9 @@ export default function CredentialDetailsModal({
         {errorMessage ? (
           <p className="credential-modal__error">{errorMessage}</p>
         ) : null}
+        {successMessage ? (
+          <p className="credential-modal__success">{successMessage}</p>
+        ) : null}
 
         <div className="credential-modal__actions">
           {isEditing ? (
@@ -160,7 +185,12 @@ export default function CredentialDetailsModal({
               <button
                 className="credential-modal__edit-button"
                 type="button"
-                onClick={() => setIsEditing(true)}
+                onClick={() => {
+                  // Clear delete confirmation before switching into edit mode.
+                  setIsConfirmingDelete(false);
+                  setSuccessMessage("");
+                  setIsEditing(true);
+                }}
               >
                 Edit
               </button>
@@ -168,6 +198,7 @@ export default function CredentialDetailsModal({
                 className="credential-modal__delete-button"
                 type="button"
                 onClick={() => setIsConfirmingDelete(true)}
+                disabled={isDeleting}
               >
                 Delete
               </button>
@@ -182,11 +213,12 @@ export default function CredentialDetailsModal({
               <button
                 type="button"
                 onClick={() => setIsConfirmingDelete(false)}
+                disabled={isDeleting}
               >
                 Cancel
               </button>
-              <button type="button" onClick={() => onDelete(credential.id)}>
-                Delete
+              <button type="button" onClick={handleDelete} disabled={isDeleting}>
+                {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

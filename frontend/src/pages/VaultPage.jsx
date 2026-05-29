@@ -23,6 +23,7 @@ export default function VaultPage() {
   const [selectedCredentialDetails, setSelectedCredentialDetails] =
     useState(null);
   const [credentialError, setCredentialError] = useState("");
+  const [statusMessage, setStatusMessage] = useState(null);
   // token is needed for the Authorization header; unlockVault restores the vault key after refresh.
   const { token, vaultKey, isVaultUnlocked, unlockVault } = useAuth();
 
@@ -63,6 +64,7 @@ export default function VaultPage() {
 
   async function handleSelectCredential(credential) {
     setCredentialError("");
+    setStatusMessage(null);
 
     if (!isVaultUnlocked) {
       // Remember the row so we can open it right after the vault is unlocked.
@@ -85,6 +87,9 @@ export default function VaultPage() {
   }
 
   async function handleDeleteCredential(credentialId) {
+    setCredentialError("");
+    setStatusMessage(null);
+
     try {
       await deleteVaultItem(token, credentialId);
 
@@ -97,12 +102,21 @@ export default function VaultPage() {
 
       setSelectedCredential(null);
       setSelectedCredentialDetails(null);
+      setStatusMessage({
+        type: "success",
+        text: "Password deleted.",
+      });
     } catch (err) {
-      setCredentialError(err.message || "Failed to delete credential");
+      const message = err.message || "Failed to delete credential";
+      setCredentialError(message);
+      throw new Error(message);
     }
   }
 
   async function handleSaveCredential(credentialId, updatedDetails) {
+    setCredentialError("");
+    setStatusMessage(null);
+
     if (!vaultKey) {
       throw new Error("Unlock your vault before editing this password.");
     }
@@ -127,6 +141,10 @@ export default function VaultPage() {
 
     setSelectedCredential(updatedCredential);
     setSelectedCredentialDetails(updatedDetails);
+    setStatusMessage({
+      type: "success",
+      text: "Password updated.",
+    });
 
     return updatedDetails;
   }
@@ -177,6 +195,13 @@ export default function VaultPage() {
         {/* Shows backend or network errors from loading the vault. */}
         {errorMessage ? <p>{errorMessage}</p> : null}
         {credentialError ? <p>{credentialError}</p> : null}
+        {statusMessage ? (
+          <p
+            className={`vault-page__status vault-page__status--${statusMessage.type}`}
+          >
+            {statusMessage.text}
+          </p>
+        ) : null}
 
         {/* Shows when the backend works but the user has no saved passwords yet. */}
         {!isLoading && !errorMessage && credentials.length === 0 ? (
@@ -193,22 +218,31 @@ export default function VaultPage() {
 
         {!isLoading && !errorMessage ? (
           <div className="vault-page__list">
-            {visibleCredentials.map((credential) => (
-              <article className="credential-row" key={credential.id}>
-                <h2 className="credential-row__title">
-                  {/* Backend returns website_name, not website. */}
-                  {credential.website_name}
-                </h2>
+            {visibleCredentials.map((credential) => {
+              const credentialMeta = getCredentialRowMeta(credential);
 
-                <button
-                  className="credential-row__button"
-                  type="button"
-                  onClick={() => handleSelectCredential(credential)}
-                >
-                  Select
-                </button>
-              </article>
-            ))}
+              return (
+                <article className="credential-row" key={credential.id}>
+                  <div className="credential-row__info">
+                    <h2 className="credential-row__title">
+                      {/* Backend returns website_name, not website. */}
+                      {credential.website_name || "Untitled website"}
+                    </h2>
+                    {credentialMeta ? (
+                      <p className="credential-row__meta">{credentialMeta}</p>
+                    ) : null}
+                  </div>
+
+                  <button
+                    className="credential-row__button"
+                    type="button"
+                    onClick={() => handleSelectCredential(credential)}
+                  >
+                    Select
+                  </button>
+                </article>
+              );
+            })}
           </div>
         ) : null}
         {filteredCredentials.length > 3 ? (
@@ -255,4 +289,11 @@ function credentialMatchesSearch(credential, normalizedSearchQuery) {
     .toLowerCase();
 
   return searchableText.includes(normalizedSearchQuery);
+}
+
+function getCredentialRowMeta(credential) {
+  // Show the most useful safe metadata on the row without exposing passwords.
+  return [credential.username, credential.website_url]
+    .filter(Boolean)
+    .join(" - ");
 }

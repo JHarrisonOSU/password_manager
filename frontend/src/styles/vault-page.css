@@ -40,6 +40,19 @@
   font-weight: 600;
 }
 
+.vault-page__status {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+  font-weight: 600;
+}
+
+.vault-page__status--success {
+  color: #146c43;
+}
+
 .vault-page__list {
   display: flex;
   flex-direction: column;
@@ -58,10 +71,22 @@
   background-color: var(--color-white);
 }
 
+.credential-row__info {
+  min-width: 0;
+}
+
 .credential-row__title {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.credential-row__meta {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .credential-row__button {
@@ -140,6 +165,11 @@
   font-size: 2.5rem;
   line-height: 1;
   cursor: pointer;
+}
+
+.credential-modal__close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .credential-modal__field {
@@ -236,6 +266,14 @@
   text-align: center;
 }
 
+.credential-modal__success {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #146c43;
+  font-weight: 600;
+  text-align: center;
+}
+
 .credential-modal__confirm {
   grid-column: 1 / -1;
   width: min(100%, 460px);
@@ -264,6 +302,11 @@
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
+}
+
+.credential-modal__confirm-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
 .credential-modal__confirm-actions button:first-child {
@@ -296,6 +339,10 @@
 
   .credential-row__title {
     font-size: 1.4rem;
+  }
+
+  .credential-row__meta {
+    font-size: 0.95rem;
   }
 
   .credential-row__button {
