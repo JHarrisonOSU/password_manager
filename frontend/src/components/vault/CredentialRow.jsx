@@ -4,7 +4,11 @@ export default function CredentialRow({ credential, onSelect }) {
   const credentialMeta = getCredentialRowMeta(credential);
 
   return (
-    <article className="credential-row">
+    <button
+      className="credential-row"
+      type="button"
+      onClick={() => onSelect(credential)}
+    >
       <div className="credential-row__info">
         <h2 className="credential-row__title">
           {/* Backend returns website_name for the display name. */}
@@ -15,13 +19,10 @@ export default function CredentialRow({ credential, onSelect }) {
         ) : null}
       </div>
 
-      <button
-        className="credential-row__button"
-        type="button"
-        onClick={() => onSelect(credential)}
-      >
+      {/* The whole row opens details; this label keeps the action obvious. */}
+      <span className="credential-row__button" aria-hidden="true">
         Select
-      </button>
-    </article>
+      </span>
+    </button>
   );
 }
