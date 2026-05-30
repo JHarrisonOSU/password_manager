@@ -135,3 +135,33 @@
   border: 1px solid #ccc;
   border-radius: 8px;
 }
+
+.totp-modal__form {
+  display: flex;
+  flex-direction: column;
+}
+
+.totp-modal__form--full {
+  width: 100%;
+}
+
+.totp-modal__button {
+  align-self: center;
+  margin-top: 1rem;
+}
+
+.totp-modal__button--secondary {
+  margin-top: 0.75rem;
+  background-color: var(--color-white);
+  color: var(--color-dark);
+  border-color: var(--color-border);
+}
+
+.totp-modal__message {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+}
+
+.totp-modal__message--error {
+  color: var(--color-danger);
+}

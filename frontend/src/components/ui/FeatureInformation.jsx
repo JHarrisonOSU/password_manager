@@ -1,11 +1,15 @@
-const FeatureInformation = (props) => {
-	return(
-		<div className="feature-information">
-			<img src={props.image} alt="icon-image" style={{border:"1px solid black", padding:"3px", borderRadius:"5px"}}/>
-			<h1 style={{marginTop:"5px", marginBottom:"10px"}}>{props.header}</h1>
-			<div>{props.para}</div>
-		</div>
-	)
-}
+const FeatureInformation = ({ image, header, para }) => {
+  return (
+    <div className="feature-information">
+      <img
+        className="feature-information__icon"
+        src={image}
+        alt={`${header} icon`}
+      />
+      <h2 className="feature-information__title">{header}</h2>
+      <p className="feature-information__copy">{para}</p>
+    </div>
+  );
+};
 
 export default FeatureInformation;

@@ -28,8 +28,8 @@ export default function UnlockVaultModal({ onUnlock, onCancel }) {
         <p>Enter your master password to decrypt vault data.</p>
 
         <form
+          className="totp-modal__form totp-modal__form--full"
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", width: "100%" }}
         >
           <input
             className="totp-field"
@@ -39,11 +39,14 @@ export default function UnlockVaultModal({ onUnlock, onCancel }) {
             autoFocus
           />
 
-          {errorMessage ? <p>{errorMessage}</p> : null}
+          {errorMessage ? (
+            <p className="totp-modal__message totp-modal__message--error">
+              {errorMessage}
+            </p>
+          ) : null}
 
           <button
-            className="auth-page__button"
-            style={{ alignSelf: "center", marginTop: "1rem" }}
+            className="auth-page__button totp-modal__button"
             type="submit"
             disabled={!masterPassword || isUnlocking}
           >
@@ -51,8 +54,7 @@ export default function UnlockVaultModal({ onUnlock, onCancel }) {
           </button>
 
           <button
-            className="auth-page__button"
-            style={{ alignSelf: "center", marginTop: "0.75rem" }}
+            className="auth-page__button totp-modal__button totp-modal__button--secondary"
             type="button"
             onClick={onCancel}
           >
