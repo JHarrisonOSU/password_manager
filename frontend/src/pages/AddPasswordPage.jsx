@@ -3,9 +3,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "../components/layout/AppShell";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
-import { encryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
-import { normalizeWebsiteUrl } from "../lib/websiteUtils";
+import { generatePasswordSuggestion } from "../lib/passwordUtils";
+import {
+  buildVaultCreatePayload,
+  validateVaultItemForm,
+} from "../lib/vaultItemUtils";
 import { createVaultItem } from "../services/authService";
 
 const initialFormData = {
@@ -41,7 +44,7 @@ export default function AddPasswordPage() {
 
     // Validate before we try to encrypt or send anything to the backend.
     setErrors({});
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateVaultItemForm(formData);
 
     if (validationErrors.form) {
       setErrors(validationErrors);
@@ -67,30 +70,8 @@ export default function AddPasswordPage() {
     setIsSaving(true);
 
     try {
-      const normalizedWebsiteUrl = normalizeWebsiteUrl(formData.websiteUrl);
-
-      if (!normalizedWebsiteUrl) {
-        throw new Error("Enter a valid website, like discord.com.");
-      }
-
-      // Encrypt the sensitive entry details in the browser before sending them.
-      // Website/login metadata stays in backend columns for searching and display.
-      const encryptedEntry = await encryptEntry(
-        {
-          password: formData.password,
-          notes: formData.notes.trim(),
-        },
-        currentVaultKey,
-      );
-
-      // Backend stores searchable metadata plus the encrypted password blob.
-      await createVaultItem(token, {
-        website_name: formData.websiteName.trim(),
-        website_url: normalizedWebsiteUrl,
-        username: formData.accountLogin.trim(),
-        encrypted_blob: encryptedEntry.ciphertext,
-        iv: encryptedEntry.iv,
-      });
+      const payload = await buildVaultCreatePayload(formData, currentVaultKey);
+      await createVaultItem(token, payload);
 
       navigate("/vault");
     } catch (err) {
@@ -100,129 +81,136 @@ export default function AddPasswordPage() {
     }
   }
 
-  function generatePassword(length=32) {
-    // Builds a 32-character suggestion by mixing user input with random characters.
-    // If user has no input, generates a 32-length random password.
-    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*"
-    const base = formData.password
-    let generated = base;
-    const remaining = Math.max(length - base.length, 0);
-    const array = new Uint32Array(remaining)
-    window.crypto.getRandomValues(array)
-    for (let i = 0; i < remaining; i ++) {
-      generated += chars[array[i] % chars.length]
-    }
-    generated = generated.split("")
-    .sort(() => Math.random() - 0.5)
-    .join("");
+  function generatePassword(length = 32) {
+    const generated = generatePasswordSuggestion(formData.password, length);
 
     setFormData((currentFormData) => ({
       ...currentFormData,
       password: generated,
-      verifyPassword: generated
+      verifyPassword: generated,
     }));
   }
 
   return (
     <AppShell>
       <section className="add-password-page">
-        <form className="add-password-form" onSubmit={handleSubmit}>
-          <label className="add-password-form__field">
-            <span>Account Login:</span>
-            <input
-              type="text"
-              name="accountLogin"
-              value={formData.accountLogin}
-              onChange={handleInputChange}
-              placeholder="email@gmail.com"
-            />
-          </label>
+        <header className="add-password-page__header">
+          <h1>Add Password</h1>
+          <p>Save a new credential to your encrypted vault.</p>
+        </header>
 
-          <label className="add-password-form__field">
-            <span>Website Name:</span>
-            <input
-              type="text"
-              name="websiteName"
-              value={formData.websiteName}
-              onChange={handleInputChange}
-              placeholder="Gmail"
-            />
-          </label>
+        <div className="add-password-page-layout">
+          <form className="add-password-form" onSubmit={handleSubmit}>
+            <label className="add-password-form__field">
+              <span>Account Login:</span>
+              <input
+                type="text"
+                name="accountLogin"
+                value={formData.accountLogin}
+                onChange={handleInputChange}
+                placeholder="email@gmail.com"
+              />
+            </label>
 
-          <label className="add-password-form__field">
-            <span>Website URL:</span>
-            <input
-              type="text"
-              name="websiteUrl"
-              value={formData.websiteUrl}
-              onChange={handleInputChange}
-              placeholder="gmail.com"
-            />
-          </label>
+            <label className="add-password-form__field">
+              <span>Website Name:</span>
+              <input
+                type="text"
+                name="websiteName"
+                value={formData.websiteName}
+                onChange={handleInputChange}
+                placeholder="Gmail"
+              />
+            </label>
 
-          <label className="add-password-form__field">
-            <span>Password:</span>
-            <div className="add-password-form__input-row">
+            <label className="add-password-form__field add-password-form__field--wide">
+              <span>Website URL:</span>
+              <input
+                type="text"
+                name="websiteUrl"
+                value={formData.websiteUrl}
+                onChange={handleInputChange}
+                placeholder="gmail.com"
+              />
+            </label>
+
+            <label className="add-password-form__field">
+              <span>Password:</span>
+              <div className="add-password-form__input-row">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="**************"
+                />
+                <button
+                  className="add-password-form__icon-button"
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                </button>
+              </div>
+            </label>
+
+            <label className="add-password-form__field">
+              <span>Verify Password</span>
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
+                name="verifyPassword"
+                value={formData.verifyPassword}
                 onChange={handleInputChange}
                 placeholder="**************"
               />
+            </label>
+
+            <label className="add-password-form__field add-password-form__field--wide">
+              <span>Notes:</span>
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                placeholder="Optional notes"
+              />
+            </label>
+
+            {errors.form ? (
+              <p className="add-password-form__error add-password-form__field--wide">
+                {errors.form}
+              </p>
+            ) : null}
+            <div className="add-password-form__button-box">
               <button
-                className="add-password-form__icon-button"
+                className="add-password-form__button add-password-form__button--secondary"
                 type="button"
-                onClick={() => setShowPassword((current) => !current)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                title={showPassword ? "Hide password" : "Show password"}
+                onClick={() => generatePassword()}
               >
-                {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                Generate Password
+              </button>
+              <button
+                className="add-password-form__button"
+                type="submit"
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save"}
               </button>
             </div>
-          </label>
+          </form>
 
-          <label className="add-password-form__field">
-            <span>Verify Password</span>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="verifyPassword"
-              value={formData.verifyPassword}
-              onChange={handleInputChange}
-              placeholder="**************"
-            />
-          </label>
-
-          <label className="add-password-form__field">
-            <span>Notes:</span>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleInputChange}
-              placeholder="Optional notes"
-            />
-          </label>
-
-          {errors.form ? (
-            <p className="add-password-form__error">{errors.form}</p>
-          ) : null}
-          <div className="add-password-form__button-box">
-          <button
-            style={{fontSize:"1.4rem"}}
-            className="add-password-form__button"
-            type="button"
-            onClick={()=>generatePassword()}>
-            Generate Password
-          </button>
-          <button
-            className="add-password-form__button"
-            type="submit"
-            disabled={isSaving}
-            >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-            </div>
-        </form>
+        {/* Keep tips near the form so users see them while creating a new entry. */}
+        <aside className="password-tips" aria-label="Password tips">
+          <h2>Password Tips</h2>
+          <ul>
+            <li>Use a unique password for every account.</li>
+            <li>Use the generator when you do not need a memorable password.</li>
+            <li>Save the real website URL so search and lookup stay clear.</li>
+            <li>Never reuse your master password for another account.</li>
+          </ul>
+        </aside>
+        </div>
       </section>
       {showUnlockPrompt ? (
         <UnlockVaultModal
@@ -232,31 +220,4 @@ export default function AddPasswordPage() {
       ) : null}
     </AppShell>
   );
-}
-
-function validateForm(formData) {
-  const accountLogin = formData.accountLogin.trim();
-  const websiteName = formData.websiteName.trim();
-  const websiteUrl = formData.websiteUrl.trim();
-  const normalizedWebsiteUrl = normalizeWebsiteUrl(websiteUrl);
-
-  if (
-    !accountLogin ||
-    !websiteName ||
-    !websiteUrl ||
-    !formData.password ||
-    !formData.verifyPassword
-  ) {
-    return { form: "Please fill out every field." };
-  }
-
-  if (!normalizedWebsiteUrl) {
-    return { form: "Enter a valid website, like discord.com." };
-  }
-
-  if (formData.password !== formData.verifyPassword) {
-    return { form: "Passwords do not match." };
-  }
-
-  return {};
 }

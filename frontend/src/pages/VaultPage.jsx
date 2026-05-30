@@ -1,15 +1,21 @@
+import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import AppShell from "../components/layout/AppShell";
 import CredentialDetailsModal from "../components/forms/CredentialDetailsModal";
+import CredentialRow from "../components/vault/CredentialRow";
 import UnlockVaultModal from "../components/forms/UnlockVaultModal";
-import { decryptEntry, encryptEntry } from "../crypto/VaultCrypto";
+import { decryptEntry } from "../crypto/VaultCrypto";
 import { useAuth } from "../lib/useAuth";
+import {
+  buildVaultUpdatePayload,
+  credentialMatchesSearch,
+  sortCredentialsByWebsiteName,
+} from "../lib/vaultItemUtils";
 import {
   deleteVaultItem,
   getVaultItems,
   updateVaultItem,
 } from "../services/authService";
-import { normalizeWebsiteUrl } from "../lib/websiteUtils";
 
 export default function VaultPage() {
   // Track creds, whether the GET /vault request is still running, and any error.
@@ -34,9 +40,12 @@ export default function VaultPage() {
         credentialMatchesSearch(credential, normalizedSearchQuery),
       )
     : credentials;
+  const sortedCredentials = sortCredentialsByWebsiteName(filteredCredentials);
   const visibleCredentials = showAllCredentials
-    ? filteredCredentials
-    : filteredCredentials.slice(0, 3);
+    ? sortedCredentials
+    : sortedCredentials.slice(0, 3);
+  const visibleCount = visibleCredentials.length;
+  const matchingCount = sortedCredentials.length;
 
   useEffect(() => {
     async function loadVaultItems() {
@@ -122,31 +131,11 @@ export default function VaultPage() {
       throw new Error("Unlock your vault before editing this password.");
     }
 
-    // Only password details are re-encrypted; name/url/login stay as metadata.
-    const normalizedWebsiteUrl = normalizeWebsiteUrl(updatedDetails.websiteUrl);
-
-    if (!normalizedWebsiteUrl) {
-      throw new Error("Enter a valid website, like discord.com.");
-    }
-
-    const encryptedDetails = {
-      password: updatedDetails.password,
-      notes: updatedDetails.notes,
-    };
-    const savedFormData = {
-      ...encryptedDetails,
-      accountLogin: updatedDetails.accountLogin,
-      websiteName: updatedDetails.websiteName,
-      websiteUrl: normalizedWebsiteUrl,
-    };
-    const encryptedEntry = await encryptEntry(encryptedDetails, vaultKey);
-    const updatedCredential = await updateVaultItem(token, credentialId, {
-      website_name: updatedDetails.websiteName,
-      website_url: normalizedWebsiteUrl,
-      username: updatedDetails.accountLogin,
-      encrypted_blob: encryptedEntry.ciphertext,
-      iv: encryptedEntry.iv,
-    });
+    const { payload, savedFormData } = await buildVaultUpdatePayload(
+      updatedDetails,
+      vaultKey,
+    );
+    const updatedCredential = await updateVaultItem(token, credentialId, payload);
 
     // Keep the page in sync immediately instead of forcing a full vault refetch.
     setCredentials((currentCredentials) =>
@@ -186,90 +175,126 @@ export default function VaultPage() {
   return (
     <AppShell>
       <section className="vault-page">
-        {!isVaultUnlocked ? (
-          <p className="vault-page__locked">
-            Vault locked. Select a credential to unlock it.
-          </p>
-        ) : null}
+        <header className="vault-page__header">
+          <h1>All Passwords</h1>
+          <p>Search and manage your saved credentials.</p>
+        </header>
 
-        <input
-          className="vault-page__search"
-          type="search"
-          placeholder="Search passwords"
-          aria-label="Search passwords"
-          value={searchQuery}
-          onChange={(event) => {
-            // Search stays local because the backend already returned the safe metadata.
-            setSearchQuery(event.target.value);
-            setShowAllCredentials(false);
-          }}
-        />
+        <div className="vault-page-layout">
+          <div className="vault-page__main">
+            {!isVaultUnlocked ? (
+              <p className="vault-page__locked">
+                Vault locked. Select a credential to unlock it.
+              </p>
+            ) : null}
 
-        {/* Shows while GET /vault is still loading. */}
-        {isLoading ? <p>Loading vault...</p> : null}
+            <label className="vault-page__search-shell">
+              <Search aria-hidden="true" size={22} />
+              <input
+                className="vault-page__search"
+                type="search"
+                placeholder="Search website name or URL"
+                aria-label="Search passwords"
+                value={searchQuery}
+                onChange={(event) => {
+                  // Search stays local because the backend already returned the safe metadata.
+                  setSearchQuery(event.target.value);
+                  setShowAllCredentials(false);
+                }}
+              />
+            </label>
 
-        {/* Shows backend or network errors from loading the vault. */}
-        {errorMessage ? <p>{errorMessage}</p> : null}
-        {credentialError ? <p>{credentialError}</p> : null}
-        {statusMessage ? (
-          <p
-            className={`vault-page__status vault-page__status--${statusMessage.type}`}
-          >
-            {statusMessage.text}
-          </p>
-        ) : null}
+            {/* Shows while GET /vault is still loading. */}
+            {isLoading ? (
+              <p className="vault-page__notice">Loading vault...</p>
+            ) : null}
 
-        {/* Shows when the backend works but the user has no saved passwords yet. */}
-        {!isLoading && !errorMessage && credentials.length === 0 ? (
-          <p>No saved passwords yet.</p>
-        ) : null}
+            {/* Shows backend or network errors from loading the vault. */}
+            {errorMessage ? (
+              <p className="vault-page__notice vault-page__notice--error">
+                {errorMessage}
+              </p>
+            ) : null}
+            {credentialError ? (
+              <p className="vault-page__notice vault-page__notice--error">
+                {credentialError}
+              </p>
+            ) : null}
+            {statusMessage ? (
+              <p
+                className={`vault-page__notice vault-page__notice--${statusMessage.type}`}
+              >
+                {statusMessage.text}
+              </p>
+            ) : null}
 
-        {/* Shows when the vault has items, but none match the current search. */}
-        {!isLoading &&
-        !errorMessage &&
-        credentials.length > 0 &&
-        filteredCredentials.length === 0 ? (
-          <p>No passwords match your search.</p>
-        ) : null}
+            {/* Shows when the backend works but the user has no saved passwords yet. */}
+            {!isLoading && !errorMessage && credentials.length === 0 ? (
+              <p className="vault-page__notice">
+                No saved passwords yet. Add your first password to start your
+                vault.
+              </p>
+            ) : null}
 
-        {!isLoading && !errorMessage ? (
-          <div className="vault-page__list">
-            {visibleCredentials.map((credential) => {
-              const credentialMeta = getCredentialRowMeta(credential);
+            {/* Shows when the vault has items, but none match the current search. */}
+            {!isLoading &&
+            !errorMessage &&
+            credentials.length > 0 &&
+            sortedCredentials.length === 0 ? (
+              <p className="vault-page__notice">
+                No passwords match your search.
+              </p>
+            ) : null}
 
-              return (
-                <article className="credential-row" key={credential.id}>
-                  <div className="credential-row__info">
-                    <h2 className="credential-row__title">
-                      {/* Backend returns website_name, not website. */}
-                      {credential.website_name || "Untitled website"}
-                    </h2>
-                    {credentialMeta ? (
-                      <p className="credential-row__meta">{credentialMeta}</p>
-                    ) : null}
-                  </div>
-
-                  <button
-                    className="credential-row__button"
-                    type="button"
-                    onClick={() => handleSelectCredential(credential)}
-                  >
-                    Select
-                  </button>
-                </article>
-              );
-            })}
+            {!isLoading && !errorMessage ? (
+              <div className="vault-page__list">
+                {visibleCredentials.map((credential) => (
+                  <CredentialRow
+                    credential={credential}
+                    key={credential.id}
+                    onSelect={handleSelectCredential}
+                  />
+                ))}
+              </div>
+            ) : null}
+            {sortedCredentials.length > 3 ? (
+              <button
+                className="vault-page__show-more"
+                type="button"
+                onClick={() => setShowAllCredentials((current) => !current)}
+              >
+                {showAllCredentials ? "Show Less" : "Show More"}
+              </button>
+            ) : null}
           </div>
-        ) : null}
-        {filteredCredentials.length > 3 ? (
-          <button
-            className="vault-page__show-more"
-            type="button"
-            onClick={() => setShowAllCredentials((current) => !current)}
-          >
-            {showAllCredentials ? "Show Less" : "Show More"}
-          </button>
-        ) : null}
+
+          <aside className="vault-summary" aria-label="Vault summary">
+            <h2>Vault Summary</h2>
+            <dl className="vault-summary__stats">
+              <div>
+                <dt>Total Saved</dt>
+                <dd>{credentials.length}</dd>
+              </div>
+              <div>
+                <dt>Matching Search</dt>
+                <dd>{matchingCount}</dd>
+              </div>
+              <div>
+                <dt>Showing</dt>
+                <dd>{visibleCount}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>{isVaultUnlocked ? "Unlocked" : "Locked"}</dd>
+              </div>
+            </dl>
+            <p>
+              Password details are decrypted only after you select an entry. If
+              the vault is locked, you’ll be asked for your master password
+              first.
+            </p>
+          </aside>
+        </div>
       </section>
       {showUnlockPrompt ? (
         <UnlockVaultModal
@@ -291,25 +316,4 @@ export default function VaultPage() {
       ) : null}
     </AppShell>
   );
-}
-
-function credentialMatchesSearch(credential, normalizedSearchQuery) {
-  // Only search backend metadata so we do not need to decrypt every password row.
-  const searchableText = [
-    credential.website_name,
-    credential.website_url,
-    credential.username,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  return searchableText.includes(normalizedSearchQuery);
-}
-
-function getCredentialRowMeta(credential) {
-  // Show the most useful safe metadata on the row without exposing passwords.
-  return [credential.username, credential.website_url]
-    .filter(Boolean)
-    .join(" - ");
 }

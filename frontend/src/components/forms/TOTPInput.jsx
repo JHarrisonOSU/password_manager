@@ -21,10 +21,7 @@ const TotpInput = ({ onSubmit }) => {
       <div className="totp-modal">
         <h3>Two-Factor Authentication</h3>
         <p>Enter the 6-digit code from your authenticator app.</p>
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column" }}
-        >
+        <form className="totp-modal__form" onSubmit={handleSubmit}>
           <input
             type="text"
             inputMode="numeric"
@@ -36,8 +33,7 @@ const TotpInput = ({ onSubmit }) => {
             className="totp-field"
           />
           <button
-            className="auth-page__button"
-            style={{ alignSelf: "center", marginTop: "1rem" }}
+            className="auth-page__button totp-modal__button"
             type="submit"
             disabled={code.length < 6}
           >

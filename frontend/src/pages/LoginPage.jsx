@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PublicLayout from "../components/layout/PublicLayout";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { argon2id } from "hash-wasm";
 import { base64ToBuf } from "../crypto/UserCrypto";
 import { getSalt, loginUser, verifyMfaLogin } from "../services/authService";
@@ -15,14 +14,21 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [showTotp, setShowTotp] = useState(false);
   const [resolver, setResolver] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("")
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
 
   async function handleLoginSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
 
+    if (!email || !password) {
+      setErrorMsg("Please enter your email and password.");
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
       // 1. Fetch salts
       const { salt_auth, salt_enc, kdfParams } = await fetchSalts();
 
@@ -47,7 +53,7 @@ export default function LoginPage() {
       } else if (loginData.token_type === "bearer") {
         authData = loginData;
       } else {
-          throw new Error("Unknown token type");
+        throw new Error("Unknown token type");
       }
 
       const vaultKey = await decryptVaultKey(encryption_key, authData);
@@ -59,9 +65,10 @@ export default function LoginPage() {
       });
 
       navigate("/vault");
-    } catch (err) { 
-      console.log(err.message)
-      setErrorMsg(err.message)
+    } catch (err) {
+      setErrorMsg(err.message || "Unable to sign in.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -125,7 +132,7 @@ export default function LoginPage() {
   };
 
   return (
-    <PublicLayout logoPosition="center">
+    <PublicLayout logoPosition="center" showFooter={true}>
       <section className="auth-page">
         <div className="auth-page__card">
           <h1 className="auth-page__title">Sign in to Password Protector</h1>
@@ -138,6 +145,8 @@ export default function LoginPage() {
                 type="email"
                 name="email"
                 placeholder=""
+                value={email}
+                disabled={isSubmitting}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
@@ -149,16 +158,26 @@ export default function LoginPage() {
                 type="password"
                 name="password"
                 placeholder=""
+                value={password}
+                disabled={isSubmitting}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>
 
-            <button className="auth-page__button" type="submit">
-              Sign In
+            <button
+              className="auth-page__button"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Signing In..." : "Sign In"}
             </button>
           </form>
           {showTotp && <TotpInput onSubmit={handleTotpSubmit} />}
-          {errorMsg ? <p className="add-password-form__error">{errorMsg}</p> : null}
+          {errorMsg ? (
+            <p className="auth-page__message auth-page__message--error">
+              {errorMsg}
+            </p>
+          ) : null}
           <p className="auth-page__footer">
             Don’t have an account?{" "}
             <Link to="/register">Click here to register.</Link>
