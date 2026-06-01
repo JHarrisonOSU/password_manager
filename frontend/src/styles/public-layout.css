@@ -3,6 +3,8 @@
 
 .public-layout {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .public-layout__logo {
@@ -39,6 +41,7 @@
 .public-layout__content {
   width: 100%;
   display: flex;
+  flex: 1;
   flex-direction: column;
 }
 
